@@ -143,7 +143,7 @@ async function resalt_auth(auth) {
 	// Put new salted auth back into .env file
 	var message = 'resave the new value';
 	var content = btoa(auth_new);   // Base64encode the salted auth
-	// await PUT_add_to_a_file_RESTAPI(auth, message, content);
+	await PUT_add_to_a_file_RESTAPI(auth, message, content);
 }
 	
 
@@ -190,6 +190,7 @@ async function loop_over_files_and_folders(data, desired_filename, file_download
 	data.forEach(async function(file) {
 		if (file.type === 'file' && file.name.match(regexp)) { 
 			file_download_url = file.download_url;
+			console.log('Desired file found: ', file.url);
 			
 			// save sha to DOM
 			document.getElementById("sha").innerHTML = file.sha;
@@ -200,7 +201,7 @@ async function loop_over_files_and_folders(data, desired_filename, file_download
 			console.log('A directory was found: ', file.url);
 			folders.push(file.url);
 		} else {
-			console.log('Desired file not found, file name: ', file.name);
+			console.log('Desired file not found: ', file.url);
 		}
 	});
 	return {data: data, file_download_url: file_download_url, folders: folders}; 
