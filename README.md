@@ -22,6 +22,6 @@ e. Salt the key (concept about salting: https://en.wikipedia.org/wiki/Salt_%28cr
 
 f. Create an invisible .env file inside an invisible .github folder in the public repository (run_GitHub_Actions), to put the encoded salted key.
 
-g. Base64_encode the salted key. Use my base64_encode webapp (https://github.com/CodeSolutions2/secure_encryption_of_data) to encode the [salted key]
+g. Base64_encode the salted key. Use my base64_encode webapp (https://github.com/CodeSolutions2/secure_encryption_of_data) to encode the [salted key]. One only needs to salt and encode the key once to initially start the repository, the library_to_run_GitHub_Actions automatically re-salts and encodes the key.
 
 h. Copy-paste the base64_encoded salted key into [run_GitHub_Actions - .github - .env]
