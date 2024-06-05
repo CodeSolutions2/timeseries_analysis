@@ -12,9 +12,3 @@ jobs:
       - name: Get desired repo name from input_text on the last line
         run: export repositoryA_name = $(cat cb.txt | tail -n 1)
         
-      - name: Dispatch event
-        uses: ${{ github.actor }}/repository-dispatch@v1
-        with:
-          token: ${{ secrets.REPO_A_PAT }}
-          repository: ${{ github.actor }}/$repositoryA_name
-          event-type: trigger-event
