@@ -8,7 +8,9 @@ on:
 jobs:
   dispatch:
     runs-on: ubuntu-latest
-    
+
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - run: echo "$(cat cb.txt | cut -d '|' -f 2)\n" > response
