@@ -11,5 +11,14 @@ jobs:
     
     steps:
       - uses: actions/checkout@v2
-      - run: REPOA_name=$(cat cb.txt | cut -d '|' -f 2)
-      - run: $REPOA_name
+      - run: $(cat cb.txt | cut -d '|' -f 2) > response
+      - run: $github.event.repository.name > response
+      - run: $github.actor > response
+      - run: $GITHUB_ACTOR > response
+      - run: $github.repository_owner > response
+
+      - name: Upload file as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: name of file to send to repository
+          path: response
