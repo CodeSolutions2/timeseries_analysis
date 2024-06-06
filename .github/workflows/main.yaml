@@ -10,15 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run: echo "$(cat cb.txt | cut -d '|' -f 2)\n" > response
       - run: echo "$github.event.repository.name\n" > response
       - run: echo "$github.actor\n" > response
       - run: echo "$GITHUB_ACTOR\n" > response
       - run: echo "$github.repository_owner" > response
-
-      - name: Upload file as artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: name of file to send to repository
-          path: response
+      - run: git add .
+      - run: git commit -m "add files"
+      - run: git push
