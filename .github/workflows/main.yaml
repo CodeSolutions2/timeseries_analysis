@@ -15,18 +15,3 @@ jobs:
       
       - name: Get desired repo name from input_text -cut text at newline char and take 2nd column
       - run: export REPOA_name = $(cat cb.txt | cut -d '/n' -f 2)
-
-      - name: Testing Repository name way 0
-      - run: $REPOA_name
-
-      - name: Testing Repository name way 1
-      - run: $github.event.repository.name
-
-      - name: Testing Repository username way 0
-      - run: $github.actor
-
-      - name: Testing Repository username way 1
-      - run: $GITHUB_ACTOR
-
-      - name: Testing Repository ownername way 0
-      - run: $github.repository_owner
