@@ -13,12 +13,22 @@ jobs:
       - uses: actions/checkout@v2
       
       - name: Get desired repo name from input_text -cut text at newline char and take 2nd column
-      - run: |
-          export REPOA_name = $(cat cb.txt | cut -d '/n' -f 2)
-          echo "Testing Repository name way 0: $REPOA_name"
-          echo "Testing Repository name way 1: $github.event.repository.name"
-          echo "Testing Repository username way 0: $github.actor"
-          echo "Testing Repository username way 1: $GITHUB_ACTOR"
-          echo "Testing Repository ownername way 0: $github.repository_owner"
-          curl -H "Accept: application/vnd.github.everest-preview+json" -X GET https://api.github.com/repos/${{ github.repository_owner }}/$REPOA_name/dispatches > out
-          echo "out: $(cat out)"
+      - run: export REPOA_name = $(cat cb.txt | cut -d '/n' -f 2)
+
+      - name: Testing Repository name way 0
+      - run: $REPOA_name
+
+      - name: Testing Repository name way 1
+      - run: $github.event.repository.name
+
+      - name: Testing Repository username way 0
+      - run: $github.actor
+
+      - name: Testing Repository username way 1
+      - run: $GITHUB_ACTOR
+
+      - name: Testing Repository ownername way 0
+      - run: $github.repository_owner
+
+      - name: List dispatch events for repository run_GitHub_Actions
+      - run: curl -H "Accept: application/vnd.github.everest-preview+json" -X GET https://api.github.com/repos/${{ github.repository_owner }}/$REPOA_name/dispatches
