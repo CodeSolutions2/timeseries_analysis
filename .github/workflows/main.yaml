@@ -12,6 +12,3 @@ jobs:
     steps:
       - name: Get files from run_GitHub_Actions
       - uses: actions/checkout@v2
-      
-      - name: Get desired repo name from input_text -cut text at newline char and take 2nd column
-      - run: export REPOA_name = $(cat cb.txt | cut -d '/n' -f 2)
