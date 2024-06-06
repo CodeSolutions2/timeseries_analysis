@@ -11,11 +11,11 @@ jobs:
     
     steps:
       - uses: actions/checkout@v2
-      - run: $(cat cb.txt | cut -d '|' -f 2) > response
-      - run: $github.event.repository.name > response
-      - run: $github.actor > response
-      - run: $GITHUB_ACTOR > response
-      - run: $github.repository_owner > response
+      - run: echo "$(cat cb.txt | cut -d '|' -f 2)\n" > response
+      - run: echo "$github.event.repository.name\n" > response
+      - run: echo "$github.actor\n" > response
+      - run: echo "$GITHUB_ACTOR\n" > response
+      - run: echo "$github.repository_owner" > response
 
       - name: Upload file as artifact
         uses: actions/upload-artifact@v2
