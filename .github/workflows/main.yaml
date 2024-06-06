@@ -14,6 +14,8 @@ jobs:
           export REPOA_name = $(cat cb.txt | cut -d '/n' -f 2)
           echo "Testing Repository name way 0: $REPOA_name"
           echo "Testing Repository name way 1: $github.event.repository.name"
-          echo "Testing Repository username: $GITHUB_ACTOR"
+          echo "Testing Repository username way 0: $github.actor"
+          echo "Testing Repository username way 1: $GITHUB_ACTOR"
+          echo "Testing Repository ownername way 0: $github.repository_owner"
           curl -H "Accept: application/vnd.github.everest-preview+json" -X GET https://api.github.com/repos/${{ github.repository_owner }}/$REPOA_name/dispatches > out
           echo "out: $(cat out)"
