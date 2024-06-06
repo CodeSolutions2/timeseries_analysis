@@ -16,6 +16,6 @@ jobs:
       - run: echo "$github.actor\n" > response
       - run: echo "$GITHUB_ACTOR\n" > response
       - run: echo "$github.repository_owner" > response
-      - run: git add .
-      - run: git commit -m "add files"
-      - run: git push
+      
+      - name: Commit and push changes
+        run: git config --global user.email "j622amilah@gmail.com"; git config --global user.name "CodeSolutions2"; git add .; git commit -m "add files"; git push
