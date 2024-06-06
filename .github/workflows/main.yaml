@@ -14,8 +14,9 @@ jobs:
       
     steps:
       - uses: actions/checkout@v4
-      - run: REPOA_NAME="$(cat cb.txt | cut -d '|' -f 2)\n"
-      - run: curl -L -X POST -H "Accept:application/vnd.github+json" -H "Authorization:Bearer ${{ secrets.REPOB_FRONTEND }}" -H "X-GitHub-Api-Version:2022-11-28" https://api.github.com/repos/CodeSolutions2/run_GitHub_Actions/dispatches -d '{"event_type":"on-demand-test","client_payload":{"fromRepoB":"OK"}}' > response
+      - run: input_text="$(cat cb.txt | cut -d '|' -f 1)"
+      - run: REPOA_NAME="$(cat cb.txt | cut -d '|' -f 2)"
+      - run: curl -L -X POST -H "Accept:application/vnd.github+json" -H "Authorization:Bearer ${{ secrets.REPOB_FRONTEND }}" -H "X-GitHub-Api-Version:2022-11-28" https://api.github.com/repos/CodeSolutions2/run_GitHub_Actions/dispatches -d '{"event_type":"trigger-event","client_payload":{"fromRepoB":"$input_text"}}' > response
 
       - name: Commit and push changes
         run: git config --global user.email "j622amilah@gmail.com"; git config --global user.name "CodeSolutions2"; git add .; git commit -m "add files"; git push https://${{ secrets.REPOB_FRONTEND }}@github.com/CodeSolutions2/run_GitHub_Actions.git
