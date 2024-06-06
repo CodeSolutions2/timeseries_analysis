@@ -15,7 +15,7 @@ jobs:
       - name: Dispatch event
         uses: $GITHUB_ACTOR/repository-dispatch@v1
         with:
-          token: ${{ secrets["REPOA_" + github.event.repository.name] }}
+          token: ${{ secrets.REPOA_MY_CHATBOT }}
           repository: $GITHUB_ACTOR/$REPOA_name
           event-type: trigger-event
         
