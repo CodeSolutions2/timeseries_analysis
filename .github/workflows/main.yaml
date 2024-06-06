@@ -10,5 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get desired repo name from input_text -cut text at newline char and take 2nd column
-        run: export repositoryA_name = $(cat cb.txt | cut -d '/n' -f 2)
+        run: export REPOA_name = $(cat cb.txt | cut -d '/n' -f 2)
+
+      - name: Dispatch event
+        uses: $GITHUB_ACTOR/repository-dispatch@v1
+        with:
+          token: ${{ secrets["REPOA_" + github.event.repository.name] }}
+          repository: $GITHUB_ACTOR/$REPOA_name
+          event-type: trigger-event
         
