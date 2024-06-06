@@ -10,12 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get desired repo name from input_text -cut text at newline char and take 2nd column
-        run: export REPOA_name = $(cat cb.txt | cut -d '/n' -f 2)
-
-      - name: Dispatch event
-        uses: $GITHUB_ACTOR/repository-dispatch@v1
-        with:
-          token: ${{ secrets.REPOA_MY_CHATBOT }}
-          repository: $GITHUB_ACTOR/$REPOA_name
-          event-type: trigger-event
-        
+      - run: |
+          export REPOA_name = $(cat cb.txt | cut -d '/n' -f 2)
+          echo "Testing Repository name way 0: $REPOA_name"
+          echo "Testing Repository name way 1: $github.event.repository.name"
+          echo "Testing Repository username: $GITHUB_ACTOR"
+          curl -H "Accept: application/vnd.github.everest-preview+json" -X GET https://api.github.com/repos/${{ github.repository_owner }}/$REPOA_name/dispatches > out
+          echo "out: $(cat out)"
