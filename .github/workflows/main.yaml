@@ -18,4 +18,4 @@ jobs:
       - run: echo "$github.repository_owner" > response
 
       - name: Commit and push changes
-        run: git config --global user.email "j622amilah@gmail.com"; git config --global user.name "CodeSolutions2"; git remote add origin https://github.com/CodeSolutions2/run_GitHub_Actions.git; git add .; git commit -m "add files"; git push https://${{ secrets.REPOB }}@github.com/CodeSolutions2/run_GitHub_Actions.git
+        run: git config --global user.email "j622amilah@gmail.com"; git config --global user.name "CodeSolutions2"; git add .; git commit -m "add files"; git push https://${{ secrets.REPOB_BACKEND }}@github.com/CodeSolutions2/run_GitHub_Actions.git
