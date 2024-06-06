@@ -1,1 +1,1 @@
-test for backend response/nmy_chatbot
+test for backend response|my_chatbot
