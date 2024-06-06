@@ -11,11 +11,7 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-      - run: echo "$(cat cb.txt | cut -d '|' -f 2)\n" > response
-      - run: echo "$github.event.repository.name\n" > response
-      - run: echo "$github.actor\n" > response
-      - run: echo "$GITHUB_ACTOR\n" > response
-      - run: echo "$github.repository_owner" > response
+      - run: file_output=$(echo "$(cat cb.txt | cut -d '|' -f 2)\n$github.event.repository.name\n$github.actor\n$GITHUB_ACTOR\n$github.repository_owner" | base64)
       
       - name: Commit and push changes
-        run: curl -L -X PUT -H "Accept:application/vnd.github+json" -H "Authorization:Bearer ${{ secrets.REPOB }}" -H "X-GitHub-Api-Version:2022-11-28" https://api.github.com/repos/CodeSolutions2/run_GitHub_Actions/contents/response -d '{"message":"save data to file in run_GitHub_Actions","committer":{"name":"App name","email":"App email"},"content":"bXkgbmV3IGZpbGUgY29udGVudHM="}'
+        run: curl -L -X PUT -H "Accept:application/vnd.github+json" -H "Authorization:Bearer ${{ secrets.REPOB }}" -H "X-GitHub-Api-Version:2022-11-28" https://api.github.com/repos/CodeSolutions2/run_GitHub_Actions/contents/response -d '{"message":"save data to file in run_GitHub_Actions","committer":{"name":"App name","email":"App email"},"content":"$file_output"}'
