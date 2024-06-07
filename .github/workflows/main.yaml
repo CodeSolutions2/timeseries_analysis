@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: rm response
-      - run: input_text="$(cat cb.txt | cut -d '|' -f 1)"
+      - run: input_text="$(cat cb.txt)"
       - run: echo "Input text is $input_text" > response
       - run: REPOA_NAME="$(cat cb.txt | cut -d '|' -f 2)"
       - run: echo "Repository name is $REPOA_NAME" >> response
