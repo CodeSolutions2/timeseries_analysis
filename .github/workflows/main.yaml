@@ -4,7 +4,9 @@ on:
   push:
     branches:
       - main
-
+    paths:
+      - '**.txt'
+    
 jobs:
   dispatch:
     runs-on: ubuntu-latest
