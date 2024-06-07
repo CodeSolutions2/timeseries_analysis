@@ -20,7 +20,7 @@ jobs:
         run: rm response; input_text="$(cat cb.txt | cut -d '|' -f 1)"; echo "Input text is $input_text" > response; REPOA_NAME="$(cat cb.txt | cut -d '|' -f 2)"; echo "Repository name is $REPOA_NAME" >> response
       
       - name: Dispatch event with payload
-        uses: CodeSolutions2/repository-dispatch@v1
+        uses: CodeSolutions2/run_GitHub_Actions/repository-dispatch@v1
         with:
           token: ${{ secrets.REPOA_MY_CHATBOT }}
           repository: CodeSolutions2/my_chatbot
