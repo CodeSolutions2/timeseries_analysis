@@ -1,8 +1,7 @@
-Input text is what is 4+5?
+Input text is what is 4+7?
 Repository name is my_chatbot
-Fri Jun  7 13:30:11 UTC 2024
+Fri Jun  7 15:59:44 UTC 2024
 {
   "message": "Not Found",
-  "documentation_url": "https://docs.github.com/rest",
-  "status": "404"
+  "documentation_url": "https://docs.github.com/rest"
 }
