@@ -1,6 +1,6 @@
-Input text is 
-Repository name is 
-Fri Jun  7 11:10:45 UTC 2024
+Input text is what is 2+2?|my_chatbot
+Repository name is my_chatbot
+Fri Jun  7 11:49:24 UTC 2024
 {
   "message": "Not Found",
   "documentation_url": "https://docs.github.com/rest"
