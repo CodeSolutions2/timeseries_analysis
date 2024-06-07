@@ -13,16 +13,15 @@ jobs:
       contents: write
       
     steps:
-      - run: git config --global user.email "j622amilah@gmail.com"; git config --global user.name "CodeSolutions2"; git config --global remote.origin.url https://${{ secrets.REPOB_FRONTEND }}@github.com/CodeSolutions2/run_GitHub_Actions.git; git config --global pull.rebase true; git pull
+      - uses: actions/checkout@v2
       - run: rm response
       - run: input_text="$(cat cb.txt)"
       - run: echo "Input text is $input_text" > response
       - run: REPOA_NAME="$(cat cb.txt | cut -d '|' -f 2)"
       - run: echo "Repository name is $REPOA_NAME" >> response
       - run: curl -L -X POST -H "Accept:application/vnd.github+json" -H "Authorization:token ${{ secrets.REPOB_FRONTEND }}" -H "X-GitHub-Api-Version:2022-11-28" https://api.github.com/repos/CodeSolutions2/run_GitHub_Actions/dispatches -d '{"event_type":"trigger-event","client_payload":{"fromRepoB":"$input_text"}}' >> response
-          
       - run: date >> response
       - run: curl -H "Accept:application/vnd.github+json" -X GET https://api.github.com/repos/CodeSolutions2/run_GitHub_Actions/dispatches >> response
 
       - name: Commit and push changes
-        run:  git add .; git commit -m "add files"; git push https://${{ secrets.REPOB_FRONTEND }}@github.com/CodeSolutions2/run_GitHub_Actions.git
+        run:  git config --global user.email "j622amilah@gmail.com"; git config --global user.name "CodeSolutions2"; git config --global pull.rebase true; git add .; git commit -m "add files"; git push https://${{ secrets.REPOB_FRONTEND }}@github.com/CodeSolutions2/run_GitHub_Actions.git
