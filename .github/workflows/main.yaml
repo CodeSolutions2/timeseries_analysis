@@ -14,9 +14,19 @@ jobs:
       
     steps:
       - uses: actions/checkout@v4
-      - run: input_text="$(cat cb.txt | cut -d '|' -f 1)" > response
-      - run: REPOA_NAME="$(cat cb.txt | cut -d '|' -f 2)" >> response
-      - run: curl -L -X POST -H "Accept:application/vnd.github+json" -H "Authorization:Bearer ${{ secrets.REPOB_FRONTEND }}" -H "X-GitHub-Api-Version:2022-11-28" https://api.github.com/repos/CodeSolutions2/run_GitHub_Actions/dispatches -d '{"event_type":"trigger-event"}' >> response
+      - run: rm response
+      - run: input_text="$(cat cb.txt | cut -d '|' -f 1)"
+      - run: echo "$input_text" > response
+      - run: REPOA_NAME="$(cat cb.txt | cut -d '|' -f 2)"
+      - run: echo "$REPOA_NAME" >> response
+      
+      - name: Dispatch event with payload
+        uses: CodeSolutions2/repository-dispatch@v1
+        with:
+          token: ${{ secrets.REPOB_FRONTEND }}
+          event_type: trigger-event
+          client_payload: '{"fromRepoB": "$input_text"}'
+          
       - run: date >> response
       - run: curl -H "Accept:application/vnd.github+json" -X GET https://api.github.com/repos/CodeSolutions2/run_GitHub_Actions/dispatches >> response
 
