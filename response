@@ -1,6 +1,7 @@
-Fri Jun  7 09:32:57 UTC 2024
+Fri Jun  7 09:43:16 UTC 2024
 \n
 {
   "message": "Not Found",
-  "documentation_url": "https://docs.github.com/rest"
+  "documentation_url": "https://docs.github.com/rest",
+  "status": "404"
 }
