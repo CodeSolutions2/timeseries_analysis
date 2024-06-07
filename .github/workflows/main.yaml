@@ -22,4 +22,4 @@ jobs:
       - run: curl -H "Accept:application/vnd.github+json" -X GET https://api.github.com/repos/CodeSolutions2/run_GitHub_Actions/dispatches >> response
 
       - name: Commit and push changes
-        run: git config --global user.email "j622amilah@gmail.com"; git config --global user.name "CodeSolutions2"; git pull; git rebase; git add .; git commit -m "add files"; git push https://${{ secrets.REPOB_FRONTEND }}@github.com/CodeSolutions2/run_GitHub_Actions.git
+        run: git config --global user.email "j622amilah@gmail.com"; git config --global user.name "CodeSolutions2"; git config --global pull.rebase true; git pull; git add .; git commit -m "add files"; git push https://${{ secrets.REPOB_FRONTEND }}@github.com/CodeSolutions2/run_GitHub_Actions.git
