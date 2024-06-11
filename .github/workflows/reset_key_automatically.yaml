@@ -25,15 +25,27 @@ jobs:
             var alpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'; 
             var num = '0123456789'; 
             let alpha_arr = alpha.split(''); 
-            let num_arr = num.split(''); 
-            var new_salt_length = Math.round(Math.random())*(n-1) + 1;
+            let num_arr = num.split('');
+            let val_that_is_0_or_1 = Math.round(Math.random());
+            var new_salt_length = val_that_is_0_or_1*(n-1) + 1;
             console.log('new_salt_length: ', new_salt_length);
-            
+
+            // make a vector filled with 0 or 1 that is letnum_selection long
             var letnum_selection = [];
             for (let i=0; i<new_salt_length; i++) { letnum_selection.push(Math.round(Math.random())); }
             console.log('letnum_selection: ', letnum_selection);
             
-            var salt = letnum_selection.map((row) => { if (row == 0) { return alpha_arr[Math.round(Math.random()*alpha_arr.length)]; } else { return num_arr[Math.round(Math.random()*num_arr.length)]; } });
+            var salt = letnum_selection.map((row) => { 
+              if (row == 0) { 
+                let val = Math.round(Math.random()*alpha_arr.length);
+                console.log('val: ', val);
+                return alpha_arr[val]; 
+              } else { 
+                let val = Math.round(Math.random()*num_arr.length);
+                console.log('val: ', val);
+                return num_arr[val]; 
+              } 
+            });
             console.log('salt: ', salt);
             
             salt = salt.join('');
