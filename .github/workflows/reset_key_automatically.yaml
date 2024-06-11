@@ -41,7 +41,8 @@ jobs:
               // salt back
               new_auth = new_auth+salt;
             }
-
+            
+            new_auth = btoa(new_auth); // This will be displayed in the file
             const fs = require('fs');
             fs.writeFileSync('.github/.env', new_auth);
             
