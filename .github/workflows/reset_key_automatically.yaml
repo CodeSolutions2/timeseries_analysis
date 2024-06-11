@@ -27,9 +27,15 @@ jobs:
             let alpha_arr = alpha.split(''); 
             let num_arr = num.split(''); 
             var new_salt_length = Math.round(Math.random())*(n-1) + 1;
+            console.log('new_salt_length: ', new_salt_length);
+            
             var letnum_selection = [];
             for (let i=0; i<new_salt_length; i++) { letnum_selection.push(Math.round(Math.random())); }
+            console.log('letnum_selection: ', letnum_selection);
+            
             var salt = letnum_selection.map((row) => { if (row == 0) { return alpha_arr[Math.round(Math.random()*alpha_arr.length)]; } else { return num_arr[Math.round(Math.random()*num_arr.length)]; } });
+            console.log('salt: ', salt);
+            
             salt = salt.join('');
             console.log('salt: ', salt);
 
