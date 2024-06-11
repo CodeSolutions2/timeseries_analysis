@@ -24,38 +24,64 @@ jobs:
           github-token: ${{ secrets.REPOB_FRONTEND }}
           script: |
             var n = 2;
+
+            // Resalt and save the key in .env, for the next time
             var alpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'; 
             var num = '0123456789'; 
             let alpha_arr = alpha.split(''); 
             let num_arr = num.split('');
-            let val_that_is_0_or_1 = Math.round(Math.random());
-            var new_salt_length = val_that_is_0_or_1*(n-1) + 1;
-            console.log('new_salt_length: ', new_salt_length);
 
-            // make a vector filled with 0 or 1 that is letnum_selection long
-            var letnum_selection = [];
-            for (let i=0; i<new_salt_length; i++) { letnum_selection.push(Math.round(Math.random())); }
-            console.log('letnum_selection: ', letnum_selection);
+            // --------------------------------
             
-            var salt = letnum_selection.map((row) => { 
-              if (row == 0) { 
-                let val = Math.round(Math.random()*alpha_arr.length);
-                console.log('val: ', val);
-                return alpha_arr[val]; 
-              } else { 
-                let val = Math.round(Math.random()*num_arr.length);
-                console.log('val: ', val);
-                return num_arr[val]; 
-              } 
-            });
-            console.log('salt: ', salt);
+            // Determine the salt length - it can be up to length n
+            // Configuration 0: [1 to n]
+            // first part is [0 to n-1], we do not want 0 so shift it by one [1 to n]
+            // var new_salt_length = Math.round(Math.random())*(n-1) + 1;
+            // OR
+            // Configuration 1: [no_salt to n]
+            var new_salt_length = Math.round(Math.random())*n;
+            console.log('new_salt_length: ', new_salt_length);
             
-            salt = salt.join('');
+            // --------------------------------
+            
+            if (new_salt_length > 0) {
+              // Fill a vector new_salt_length long with 0 or 1; 0=salt a letter, 1=salt a number
+              var letnum_selection = [];
+              for (let i=0; i<new_salt_length; i++) {
+                letnum_selection.push(Math.round(Math.random())); 
+              }
+              // console.log('letnum_selection: ', letnum_selection);
+              
+              // --------------------------------
+
+              // Create salt (extra strings randomly)
+              var salt = letnum_selection.map((row) => { 
+                if (row == 0) { 
+                  let val = Math.round(Math.random()*alpha_arr.length);
+                  console.log('val: ', val);
+                  return alpha_arr[val]; 
+                } else { 
+                  let val = Math.round(Math.random()*num_arr.length);
+                  console.log('val: ', val);
+                  return num_arr[val]; 
+                } 
+              });
+              console.log('salt: ', salt);
+              salt = salt.join('');
+            } else {
+              salt = "";
+            }
             console.log('salt: ', salt);
+
+            // --------------------------------
 
             const { REPOB_FRONTEND } = process.env
             let new_auth = `${REPOB_FRONTEND}`;
             console.log('new_auth: ', new_auth);
+
+            // --------------------------------
+            
+            // Add salt to auth_new
             if (Math.round(Math.random()) == 0) {
               // salt front
               new_auth = salt+new_auth;
@@ -65,6 +91,9 @@ jobs:
             }
             
             new_auth = btoa(new_auth); // This will be displayed in the file
+
+            // --------------------------------
+            
             const fs = require('fs');
             fs.writeFileSync('.github/.env', new_auth);
 
