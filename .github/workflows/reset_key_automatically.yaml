@@ -1,0 +1,56 @@
+name: automatically reset REPOB key with any change to repo
+
+on:
+  push:
+    branches:
+      - main
+    
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Get repository files (equivalent to git pull)
+        uses: actions/checkout@v2
+        
+      - name: Reset the key automatically
+        uses: actions/github-script@v4
+        with:
+          github-token: ${{ secrets.REPOB_FRONTEND }}
+          script: |
+            var alpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'; 
+            var num = '0123456789'; 
+            let alpha_arr = alpha.split(''); 
+            let num_arr = num.split(''); 
+            var new_salt_length = Math.round(Math.random())*(n-1) + 1;
+            var letnum_selection = [];
+            for (let i=0; i<new_salt_length; i++) { letnum_selection.push(Math.round(Math.random())); }
+            obj.salt = letnum_selection.map((row) => { if (row == 0) { return alpha_arr[Math.round(Math.random()*alpha_arr.length)]; } else { return num_arr[Math.round(Math.random()*num_arr.length)]; } });
+            obj.salt = obj.salt.join('');
+            console.log('obj.salt: ', obj.salt);
+
+            let new_auth = process.env.REPOB_FRONTEND;
+            if (Math.round(Math.random()) == 0) {
+            // salt front
+            new_auth = obj.salt+new_auth;
+            } else {
+            // salt back
+            new_auth = new_auth+obj.salt;
+            }
+
+            // Get sha of file
+            let url = 'https://api.github.com/repos/CodeSolutions2/run_GitHub_Actions/contents/.github/.env';
+            let sha = await fetch(url).then(res => res.json()).then(data => {
+            let regexp = new RegExp('.env', 'g');
+            let sha = '';
+            data.forEach(file => { if (file.type === 'file' && file.name.match(regexp)) { sha = file.sha; } });
+            return sha;
+            });
+            
+            var data = {"message": message, "committer":{"name":"App name","email":"App email"}, "content": btoa(new_auth), "sha": sha};
+            var headers = {"Accept": "application/vnd.github+json", "Authorization": `Bearer ${auth}`, "X-GitHub-Api-Version": "2022-11-28"};
+            var options = {method : 'PUT', headers: headers, body : JSON.stringify(data)};
+            await fetch(url, options)
