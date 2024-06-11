@@ -53,6 +53,7 @@ jobs:
             salt = salt.join('');
             console.log('salt: ', salt);
 
+            const { REPOB_FRONTEND } = process.env
             let new_auth = `${REPOB_FRONTEND}`;
             console.log('new_auth: ', new_auth);
             if (Math.round(Math.random()) == 0) {
