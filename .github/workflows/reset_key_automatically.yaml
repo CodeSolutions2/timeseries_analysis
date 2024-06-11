@@ -18,6 +18,8 @@ jobs:
         
       - name: Reset the key automatically
         uses: actions/github-script@v4
+        env:
+          REPOB_FRONTEND: '${{ secrets.REPOB_FRONTEND }}'
         with:
           github-token: ${{ secrets.REPOB_FRONTEND }}
           script: |
@@ -51,7 +53,7 @@ jobs:
             salt = salt.join('');
             console.log('salt: ', salt);
 
-            let new_auth = ${{ secrets.REPOB_FRONTEND }};
+            let new_auth = `${REPOB_FRONTEND}`;
             console.log('new_auth: ', new_auth);
             if (Math.round(Math.random()) == 0) {
               // salt front
