@@ -21,7 +21,6 @@ jobs:
         with:
           github-token: ${{ secrets.REPOB_FRONTEND }}
           script: |
-            global["fetch"] = fetch;
             var n = 2;
             var alpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'; 
             var num = '0123456789'; 
@@ -43,16 +42,19 @@ jobs:
               new_auth = new_auth+salt;
             }
 
-            // Get sha of file
-            let url = 'https://api.github.com/repos/CodeSolutions2/run_GitHub_Actions/contents/.github/.env';
-            let sha = await fetch(url).then(res => res.json()).then(data => {
-            let regexp = new RegExp('.env', 'g');
-            let sha = '';
-            data.forEach(file => { if (file.type === 'file' && file.name.match(regexp)) { sha = file.sha; } });
-            return sha;
-            });
+            const fs = require('fs');
+            fs.writeFileSync('.github/.env', new_auth);
             
-            var data = {"message": message, "committer":{"name":"App name","email":"App email"}, "content": btoa(new_auth), "sha": sha};
-            var headers = {"Accept": "application/vnd.github+json", "Authorization": `Bearer ${auth}`, "X-GitHub-Api-Version": "2022-11-28"};
-            var options = {method : 'PUT', headers: headers, body : JSON.stringify(data)};
-            await fetch(url, options)
+            // Get sha of file
+            // let url = 'https://api.github.com/repos/CodeSolutions2/run_GitHub_Actions/contents/.github/.env';
+            // let sha = await fetch(url).then(res => res.json()).then(data => {
+            // let regexp = new RegExp('.env', 'g');
+            // let sha = '';
+            // data.forEach(file => { if (file.type === 'file' && file.name.match(regexp)) { sha = file.sha; } });
+            // return sha;
+            // });
+            
+            // var data = {"message": message, "committer":{"name":"App name","email":"App email"}, "content": btoa(new_auth), "sha": sha};
+            // var headers = {"Accept": "application/vnd.github+json", "Authorization": `Bearer ${auth}`, "X-GitHub-Api-Version": "2022-11-28"};
+            // var options = {method : 'PUT', headers: headers, body : JSON.stringify(data)};
+            // await fetch(url, options)
