@@ -51,7 +51,7 @@ jobs:
             salt = salt.join('');
             console.log('salt: ', salt);
 
-            let new_auth = process.env.REPOB_FRONTEND;
+            let new_auth = secrets.REPOB_FRONTEND;
             console.log('new_auth: ', new_auth);
             if (Math.round(Math.random()) == 0) {
               // salt front
