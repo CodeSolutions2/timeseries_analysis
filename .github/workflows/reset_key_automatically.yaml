@@ -6,7 +6,7 @@ on:
       - main
     
 jobs:
-  dispatch:
+  reset_key:
     runs-on: ubuntu-latest
 
     permissions:
@@ -29,17 +29,17 @@ jobs:
             var new_salt_length = Math.round(Math.random())*(n-1) + 1;
             var letnum_selection = [];
             for (let i=0; i<new_salt_length; i++) { letnum_selection.push(Math.round(Math.random())); }
-            obj.salt = letnum_selection.map((row) => { if (row == 0) { return alpha_arr[Math.round(Math.random()*alpha_arr.length)]; } else { return num_arr[Math.round(Math.random()*num_arr.length)]; } });
-            obj.salt = obj.salt.join('');
-            console.log('obj.salt: ', obj.salt);
+            var salt = letnum_selection.map((row) => { if (row == 0) { return alpha_arr[Math.round(Math.random()*alpha_arr.length)]; } else { return num_arr[Math.round(Math.random()*num_arr.length)]; } });
+            salt = salt.join('');
+            console.log('salt: ', salt);
 
             let new_auth = process.env.REPOB_FRONTEND;
             if (Math.round(Math.random()) == 0) {
-            // salt front
-            new_auth = obj.salt+new_auth;
+              // salt front
+              new_auth = salt+new_auth;
             } else {
-            // salt back
-            new_auth = new_auth+obj.salt;
+              // salt back
+              new_auth = new_auth+salt;
             }
 
             // Get sha of file
