@@ -21,6 +21,7 @@ jobs:
         with:
           github-token: ${{ secrets.REPOB_FRONTEND }}
           script: |
+            var n = 2;
             var alpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'; 
             var num = '0123456789'; 
             let alpha_arr = alpha.split(''); 
