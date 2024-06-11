@@ -23,7 +23,7 @@ jobs:
         with:
           github-token: ${{ secrets.REPOB_FRONTEND }}
           script: |
-            var n = 2;
+            var n = 1;
 
             // Resalt and save the key in .env, for the next time
             var alpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'; 
