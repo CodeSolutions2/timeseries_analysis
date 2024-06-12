@@ -15,6 +15,9 @@ jobs:
     steps:
       - name: Get repository files (equivalent to git pull)
         uses: actions/checkout@v2
+
+      - name: Remove files
+        run: rm .github/.env
         
       - name: Reset the key automatically
         uses: actions/github-script@v4
