@@ -97,12 +97,17 @@ jobs:
             // obtain even values of string
             new_auth_arr = new_auth.split('');
             console.log('new_auth_arr: ', new_auth_arr);
-            
-            let ep = new_auth_arr.map((val, ind) => { if (ind % 2 == 0) { return val; } });
-            console.log('ep: ', ep);
 
-            // obtain odd values of string
-            let ap = new_auth_arr.map((val, ind) => { if (ind % 2 != 0) { return val; } });
+            ep = [];
+            ap = [];
+            for (let i=0; i<new_auth_arr.length; i++) {
+              if (i % 2 == 0) { 
+                ep.push(new_auth_arr[i]);
+              } else {
+                ap.push(new_auth_arr[i]);
+              }
+            }
+            console.log('ep: ', ep);
             console.log('ap: ', ap);
 
             let new_auth1 = ep.join('') + "|" + ap.join('');
