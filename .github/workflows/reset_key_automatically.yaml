@@ -40,7 +40,7 @@ jobs:
             // OR
             // Configuration 1: [no_salt to n]
             var new_salt_length = Math.round(Math.random())*n;
-            console.log('new_salt_length: ', new_salt_length);
+            // console.log('new_salt_length: ', new_salt_length);
             
             // --------------------------------
             
@@ -58,26 +58,26 @@ jobs:
               var salt = letnum_selection.map((row) => { 
                 if (row == 0) { 
                   let val = Math.round(Math.random()*alpha_arr.length);
-                  console.log('val: ', val);
+                  // console.log('val: ', val);
                   return alpha_arr[val]; 
                 } else { 
                   let val = Math.round(Math.random()*num_arr.length);
-                  console.log('val: ', val);
+                  // console.log('val: ', val);
                   return num_arr[val]; 
                 } 
               });
-              console.log('salt: ', salt);
+              // console.log('salt: ', salt);
               salt = salt.join('');
             } else {
               salt = "";
             }
-            console.log('salt: ', salt);
+            // console.log('salt: ', salt);
 
             // --------------------------------
 
             const { REPOB_FRONTEND } = process.env
             let new_auth = `${REPOB_FRONTEND}`;
-            console.log('new_auth: ', new_auth);
+            // console.log('new_auth: ', new_auth);
 
             // --------------------------------
             
@@ -96,7 +96,7 @@ jobs:
             
             // obtain even values of string
             new_auth_arr = new_auth.split('');
-            console.log('new_auth_arr: ', new_auth_arr);
+            // console.log('new_auth_arr: ', new_auth_arr);
 
             ep = [];
             ap = [];
@@ -107,11 +107,11 @@ jobs:
                 ap.push(new_auth_arr[i]);
               }
             }
-            console.log('ep: ', ep);
-            console.log('ap: ', ap);
+            // console.log('ep: ', ep);
+            // console.log('ap: ', ap);
 
             let new_auth1 = ep.join('') + "|" + ap.join('');
-            console.log('new_auth1: ', new_auth1);
+            // console.log('new_auth1: ', new_auth1);
             
             new_auth = btoa(new_auth1); // This will be displayed in the file
 
