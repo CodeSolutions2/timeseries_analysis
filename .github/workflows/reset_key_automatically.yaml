@@ -122,4 +122,4 @@ jobs:
 
 
       - name: Commit and push changes back to repository
-        run:  git config --global user.email "j622amilah@gmail.com"; git config --global user.name "CodeSolutions2"; git pull origin main; git checkout main; git merge main --ff-only; git add .; git commit -m "update"; git push https://${{ secrets.REPOB_FRONTEND }}@github.com/CodeSolutions2/frontend_backend_message_passing_central_repository_v0.git
+        run:  git config --global user.email "j622amilah@gmail.com"; git config --global user.name "CodeSolutions2"; git pull origin main; git checkout main; git branch --set-upstream-to origin/main; git merge main --ff-only; git add .; git commit -m "update"; git push https://${{ secrets.REPOB_FRONTEND }}@github.com/CodeSolutions2/frontend_backend_message_passing_central_repository_v0.git
