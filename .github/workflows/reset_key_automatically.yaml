@@ -42,7 +42,7 @@ jobs:
             // OR
             // Configuration 1: [no_salt to n]
             var new_salt_length = Math.round(Math.random())*n;
-            // console.log('new_salt_length: ', new_salt_length);
+            console.log('new_salt_length: ', new_salt_length);
             
             // --------------------------------
             
@@ -73,7 +73,7 @@ jobs:
             } else {
               salt = "";
             }
-            // console.log('salt: ', salt);
+            console.log('salt: ', salt);
 
             // --------------------------------
 
