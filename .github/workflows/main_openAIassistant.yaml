@@ -1,0 +1,25 @@
+name: openAIassistant one-time only REPOB repository_dispatch event that triggers REPOA
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'openAIassistant/**.txt'
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Get repository files (equivalent to git pull)
+        uses: actions/checkout@v2
+
+      - name: Run commands
+        run: INPUT_TEXT="$(cat openAIassistant/cb.txt | cut -d '|' -f 1)"; echo "Input text is $INPUT_TEXT" >> openAIassistant/response; REPOA_NAME="$(cat openAIassistant/cb.txt | cut -d '|' -f 2)"; echo "Repository name is $REPOA_NAME" >> openAIassistant/response; json_string_var="$(echo '{"event_type":"trigger-openAIassistant","client_payload":{"fromrepob":"'$INPUT_TEXT'"}}')"; curl -L -X POST -H "Accept:application/vnd.github+json" -H "Authorization:Bearer ${{ secrets.REPOA_MY_CHATBOT }}" -H "X-GitHub-Api-Version:2022-11-28" https://api.github.com/repos/CodeSolutions2/my_chatbot/dispatches -d "$json_string_var" >> openAIassistant/response; date >> openAIassistant/response
+
+      - name: Commit and push changes back to repository
+        run:  git config --global user.email "j622amilah@gmail.com"; git config --global user.name "CodeSolutions2"; git checkout main; git pull; git merge main --ff-only; git add .; git commit -m "add files"; git push https://${{ secrets.REPOB_FRONTEND }}@github.com/CodeSolutions2/frontend_backend_message_passing_central_repository_v0.git
