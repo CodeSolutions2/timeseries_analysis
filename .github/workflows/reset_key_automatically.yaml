@@ -4,7 +4,9 @@ on:
   push:
     branches:
       - main
-    
+    paths:
+      - '**.txt'
+
 jobs:
   reset_key:
     runs-on: ubuntu-latest
