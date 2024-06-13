@@ -1,4 +1,4 @@
-name: Clean up
+name: Clean up openAI3_5
 
 on:
   workflow_run:
