@@ -1,0 +1,27 @@
+name: Clean up openAIassistant model
+
+on:
+  workflow_run:
+    workflows: ["openAIassistant one-time only REPOB repository_dispatch event that triggers REPOA"]
+    types:
+      - completed
+
+jobs:
+  clean_up_files:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Wait for 120 seconds (2 mins)
+        run: sleep 120
+
+      - name: Get repository files (equivalent to git pull)
+        uses: actions/checkout@v2
+
+      - name: Remove files - one file must be in openAI3_5 so only clear cb.txt 
+        run: rm openAIassistant/response; echo '' > openAIassistant/cb.txt
+        
+      - name: Commit and push changes
+        run: git config --global user.email "j622amilah@gmail.com"; git config --global user.name "CodeSolutions2"; git config --global pull.rebase true; git add .; git commit -m "add files"; git push https://${{ secrets.REPOB_FRONTEND }}@github.com/CodeSolutions2/frontend_backend_message_passing_central_repository_v0.git
