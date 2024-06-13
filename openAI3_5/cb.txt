@@ -1,1 +1,1 @@
-is there a whay to directly insert a github action environmental variable into an HTML page?|my_chatbot
+
