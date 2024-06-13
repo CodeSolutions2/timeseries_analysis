@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - '**.txt'
+      - 'openAI3_5/**.txt'
     
 jobs:
   dispatch:
