@@ -1,4 +1,4 @@
-name: Clean up openAIassistant model
+name: Clean up openAIassistant
 
 on:
   workflow_run:
@@ -20,7 +20,7 @@ jobs:
       - name: Get repository files (equivalent to git pull)
         uses: actions/checkout@v2
 
-      - name: Remove files - one file must be in openAI3_5 so only clear cb.txt 
+      - name: Remove files - one file must be in openAIassistant so only clear cb.txt 
         run: rm openAIassistant/response; echo '' > openAIassistant/cb.txt
         
       - name: Commit and push changes
