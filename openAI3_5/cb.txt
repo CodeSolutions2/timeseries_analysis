@@ -1,1 +1,1 @@
-how does one make an endpoint using JavaScript only? please give an example|my_chatbot
+
