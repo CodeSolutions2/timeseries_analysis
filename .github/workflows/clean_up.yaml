@@ -24,4 +24,4 @@ jobs:
         run: rm openAI3_5/response; echo '' > openAI3_5/cb.txt
         
       - name: Commit and push changes
-        run: git config --global user.email "j622amilah@gmail.com"; git config --global user.name "CodeSolutions2"; git config --global pull.rebase true; git add .; git commit -m "add files"; git push https://${{ secrets.REPOB_FRONTEND }}@github.com/CodeSolutions2/frontend_backend_message_passing_central_repository_v0.git
+        run: git config --global user.email "j622amilah@gmail.com"; git config --global user.name "CodeSolutions2"; git config --global pull.rebase true; git add -A; git diff-index --quiet HEAD || git commit -m "add files" --allow-empty; git push https://${{ secrets.REPOB_FRONTEND }}@github.com/CodeSolutions2/frontend_backend_message_passing_central_repository_v0.git
