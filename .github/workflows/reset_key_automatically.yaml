@@ -19,9 +19,9 @@ jobs:
       - name: Reset the key automatically
         uses: actions/github-script@v4
         env:
-          REPOB_FRONTEND: '${{ secrets.REPOB_FRONTEND }}'
+          REPO_V0: '${{ secrets.REPO_V0 }}'
         with:
-          github-token: ${{ secrets.REPOB_FRONTEND }}
+          github-token: ${{ secrets.REPO_V0 }}
           script: |
             var n = 1;
 
@@ -75,8 +75,8 @@ jobs:
 
             // --------------------------------
 
-            const { REPOB_FRONTEND } = process.env
-            let new_auth = `${REPOB_FRONTEND}`;
+            const { REPO_V0 } = process.env
+            let new_auth = `${REPO_V0}`;
             // console.log('new_auth: ', new_auth);
 
             // --------------------------------
@@ -122,4 +122,4 @@ jobs:
 
 
       - name: Commit and push changes back to repository
-        run:  git config --global user.email "j622amilah@gmail.com"; git config --global user.name "CodeSolutions2"; git pull origin main; git checkout main; git branch --set-upstream-to origin/main; git merge main --ff-only; git add -A; git diff-index --quiet HEAD || git commit -m "add files" --allow-empty; git push https://${{ secrets.REPOB_FRONTEND }}@github.com/CodeSolutions2/frontend_backend_message_passing_central_repository_v0.git
+        run:  git config --global user.email "j622amilah@gmail.com"; git config --global user.name "CodeSolutions2"; git pull origin main; git checkout main; git branch --set-upstream-to origin/main; git merge main --ff-only; git add -A; git diff-index --quiet HEAD || git commit -m "add files" --allow-empty; git push https://${{ secrets.REPO_V0 }}@github.com/CodeSolutions2/frontend_backend_message_passing_central_repository_v0.git
