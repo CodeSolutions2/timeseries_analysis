@@ -17,11 +17,15 @@ c. Setup Organization verification of token: Settings - Your Organizations (left
   - Require approval of fine-grained personal access tokens : Require administrator approval 
   - Personal access token (classic) : Allow access via personal access tokens (classic)
 
-d. Copy and save the key somewhere safe only for you. 
+d. Put the key into GitHub Secrets for the frontend_backend_message_passing_central_repository_v0 repository. Settings - Secrets and variables - Actions - New repository secret. I called my key REPOB_V0.
 
-e. Salt the key (concept about salting: https://en.wikipedia.org/wiki/Salt_%28cryptography%29)
-    - Add 1 to n extra characters to the beginning or end of the key (n=1 or 2)
-    
-f. Create an invisible .env file inside an invisible .github folder in the public repository (frontend_backend_message_passing_central_repository_v0), to put the encoded salted key.
+e. Write a .yaml workflow that takes the REPOB_V0 key from GitHub Secrets, encodes the key so it is non-visible (non recognizable to viewers), and save it in a .github/.env file in the frontend_backend_message_passing_central_repository_v0 repository. 
+  - The .yaml workflow is located at [.github/workflows/reset_key_automatically.yaml](https://github.com/CodeSolutions2/frontend_backend_message_passing_central_repository_v0/blob/main/.github/workflows/reset_key_automatically.yaml)
+  - In the script:
+      - the REPOB_V0 key is retreived from Github Secrets,
+      - salt is created (concept about salting: https://en.wikipedia.org/wiki/Salt_%28cryptography%29) and salt is added to the key, such that 1 to n extra random characters are added to the beginning or end of the key (n=1 or 2),
+      - the characters of the salted key are scrambled/mixed-up because GitHub will automatically recognize the key even if it is base64 encoded
+      - base64 encode the salted scrambled key
+      - save the the base64 encoded key to file
 
-g. Base64_encode the salted key. Feel free to use my base64_encode webapp (https://github.com/CodeSolutions2/secure_encryption_of_data) to encode the [salted key]. One only needs to salt and encode the key once to initially start the repository, the library_to_run_GitHub_Actions automatically re-salts and encodes the key.
+Feel free to use other methods for making your key non-visible. 
