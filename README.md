@@ -26,6 +26,6 @@ e. Write a .yaml workflow that takes the REPOB_V0 key from GitHub Secrets, encod
       - salt is created (concept about salting: https://en.wikipedia.org/wiki/Salt_%28cryptography%29) and salt is added to the key, such that 1 to n extra random characters are added to the beginning or end of the key (n=1 or 2),
       - the characters of the salted key are scrambled/mixed-up because GitHub will automatically recognize the key even if it is base64 encoded
       - base64 encode the salted scrambled key
-      - save the the base64 encoded key to file
+      - save the the base64 encoded key to the .github/.env file
 
-Feel free to use other methods for making your key non-visible. 
+   Feel free to use other methods for making your key non-visible. 
