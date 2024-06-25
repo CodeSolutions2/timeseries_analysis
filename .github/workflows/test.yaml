@@ -1,0 +1,36 @@
+name: test
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Get repository files (equivalent to git pull)
+        uses: actions/checkout@v2
+
+      - name: Run commands
+        run: |
+          REPOA_MY_CHATBOT="$(${{ secrets.REPOA_MY_CHATBOT || secrets.REPOA_MY_CHATBOT_TOKEN1 }})";
+          echo "REPOA_MY_CHATBOT = ${REPOA_MY_CHATBOT}";
+          
+
+      - name: Commit and push changes back to repository
+        run: |
+          git config --global user.email "j622amilah@gmail.com"; 
+          git config --global user.name "CodeSolutions2"; 
+          git checkout main; 
+          git pull; 
+          git merge main --ff-only; 
+          git add -A; 
+          git diff-index --quiet HEAD || git commit -m "add files" --allow-empty;
+          REPOB_V0="$(${{ secrets.REPOB_V0 || secrets.REPOB_V0_TOKEN1 }})";
+          echo "REPOB_V0 = ${REPOB_V0}";
+          git push https://${REPOB_V0}@github.com/CodeSolutions2/frontend_backend_message_passing_central_repository_v0.git
