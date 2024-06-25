@@ -14,7 +14,7 @@ jobs:
       secrets: write
       
     steps:
-      - name: Create a GitHub secrect using gh CLI
+      - name: Create a GitHub secret using gh CLI
         run: gh secret set 'REPOB_V0_test' --body "$(date +%s)" --repo ${{ github.repository }}
         env:
           GITHUB_TOKEN: ${{ steps.access-token.outputs.token }}
@@ -22,6 +22,7 @@ jobs:
   job1_read_secret:
     needs: job0_update_secret
     runs-on: ubuntu-latest
+    
     steps:
       - name: Test if a new GitHub key was created
-      - run: echo "New GitHub key = ${{ secrets.REPOB_V0_test }}"
+        run: echo "New GitHub key = ${{ secrets.REPOB_V0_test }}"
