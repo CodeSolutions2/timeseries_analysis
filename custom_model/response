@@ -1,0 +1,8 @@
+Input text is text
+Repository name is my_chatbot
+{
+  "message": "Resource not accessible by personal access token",
+  "documentation_url": "https://docs.github.com/rest/repos/repos#create-a-repository-dispatch-event",
+  "status": "403"
+}
+Tue Jun 25 16:34:25 UTC 2024
