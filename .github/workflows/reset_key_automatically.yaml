@@ -57,11 +57,11 @@ jobs:
               // Create salt (extra strings randomly)
               var salt = letnum_selection.map((row) => { 
                 if (row == 0) { 
-                  let val = Math.round(Math.random()*alpha_arr.length);
+                  var val = Math.round(Math.random()*alpha_arr.length);
                   // console.log('val: ', val);
                   return alpha_arr[val]; 
                 } else { 
-                  let val = Math.round(Math.random()*num_arr.length);
+                  var val = Math.round(Math.random()*num_arr.length);
                   // console.log('val: ', val);
                   return num_arr[val]; 
                 } 
@@ -97,8 +97,8 @@ jobs:
             var new_auth_arr = new_auth.split('');
             // console.log('new_auth_arr: ', new_auth_arr);
 
-            ep = [];
-            ap = [];
+            var ep = [];
+            var ap = [];
             for (let i=0; i<new_auth_arr.length; i++) {
               if (i % 2 == 0) { 
                 ep.push(new_auth_arr[i]);
