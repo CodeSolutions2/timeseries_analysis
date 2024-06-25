@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  update_secret:
+  job0_update_secret:
     runs-on: ubuntu-latest
     
     permissions: |
@@ -14,13 +14,14 @@ jobs:
       secrets: write
       
     steps:
-      - name: Update secret
+      - name: Create a GitHub secrect using gh CLI
         run: gh secret set 'REPOB_V0_test' --body "$(date +%s)" --repo ${{ github.repository }}
         env:
           GITHUB_TOKEN: ${{ steps.access-token.outputs.token }}
 
-  read_secret:
-    needs: update_secret
+  job1_read_secret:
+    needs: job0_update_secret
     runs-on: ubuntu-latest
     steps:
-      - run: echo ${{ secrets.REPOB_V0_test }}
+      - name: Test if a new GitHub key was created
+      - run: echo "New GitHub key = ${{ secrets.REPOB_V0_test }}"
