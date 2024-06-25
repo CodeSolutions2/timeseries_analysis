@@ -1,0 +1,26 @@
+name: version1 automatically update REPOB key with GitHub
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update_secret:
+    runs-on: ubuntu-latest
+    
+    permissions: |
+      id-token: write
+      secrets: write
+      
+    steps:
+      - name: Update secret
+        run: gh secret set 'REPOB_V0_test' --body "$(date +%s)" --repo ${{ github.repository }}
+        env:
+          GITHUB_TOKEN: ${{ steps.access-token.outputs.token }}
+
+  read_secret:
+    needs: update_secret
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ${{ secrets.REPOB_V0_test }}
