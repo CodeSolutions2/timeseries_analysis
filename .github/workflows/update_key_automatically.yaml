@@ -8,13 +8,15 @@ on:
 jobs:
   job0_update_secret:
     runs-on: ubuntu-latest
+    env:
+      REPOB_V0_test: '${{ secrets.REPOB_V0_test }}'
     
     permissions:
       id-token: write
       
     steps:
       - name: Create a GitHub secret using gh CLI
-        run: gh secret set 'REPOB_V0_test' --body "$(date +%s)" --env-file .env --repo ${{ github.repository }}
+        run: gh secret set 'REPOB_V0_test' --body "$(date +%s)" --repo ${{ github.repository }}
         env:
           REPOB_V0_test: '${{ steps.access-token.outputs.token }}'
 
