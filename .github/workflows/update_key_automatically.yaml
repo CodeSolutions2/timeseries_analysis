@@ -9,9 +9,8 @@ jobs:
   job0_update_secret:
     runs-on: ubuntu-latest
     
-    permissions: |
+    permissions:
       id-token: write
-      secrets: write
       
     steps:
       - name: Create a GitHub secret using gh CLI
