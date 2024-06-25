@@ -14,9 +14,9 @@ jobs:
       
     steps:
       - name: Create a GitHub secret using gh CLI
-        run: gh secret set 'REPOB_V0_test' --body "$(date +%s)" --repo ${{ github.repository }}
+        run: gh secret set 'REPOB_V0_test' --body "$(date +%s)" --env-file .env --repo ${{ github.repository }}
         env:
-          GITHUB_TOKEN: ${{ steps.access-token.outputs.token }}
+          REPOB_V0_test: '${{ steps.access-token.outputs.token }}'
 
   job1_read_secret:
     needs: job0_update_secret
