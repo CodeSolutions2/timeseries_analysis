@@ -74,9 +74,8 @@ jobs:
             console.log('salt: ', salt);
 
             // --------------------------------
-
-            const { REPOB_V0 } = process.env
-            let new_auth = `${REPOB_V0}`;
+            
+            let new_auth = process.env.REPOB_V0;
             // console.log('new_auth: ', new_auth);
 
             // --------------------------------
