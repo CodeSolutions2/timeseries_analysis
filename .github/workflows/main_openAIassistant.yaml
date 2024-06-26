@@ -37,8 +37,8 @@ jobs:
           
           git config --global user.email ${repoOwnerEmail};
           git config --global user.name ${repoOwner};
-          git checkout main; 
-          git pull; 
+          git pull;
+          git checkout main;
           git merge main --ff-only; 
           git add -A; 
           git diff-index --quiet HEAD || git commit -m "add files" --allow-empty;
