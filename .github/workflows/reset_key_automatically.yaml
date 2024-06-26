@@ -121,11 +121,13 @@ jobs:
 
 
       - name: Commit and push changes back to repository
+        env:
+          REPOB_V0: "${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}"
         run: |
           repoOwner="CodeSolutions2";
           repoName="frontend_backend_message_passing_central_repository_v0";
           repoOwnerEmail="j622amilah@gmail.com";
-          REPOB_V0="$(echo '${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}')";
+          echo "REPOB_V0 = ${REPOB_V0}"
           
           git config --global user.email ${repoOwnerEmail};
           git config --global user.name ${repoOwner};
