@@ -123,7 +123,6 @@ jobs:
       - name: Commit and push changes back to repository
         run: |
           repoOwner="CodeSolutions2";
-          repoName="frontend_backend_message_passing_central_repository_v0";
           repoOwnerEmail="j622amilah@gmail.com";
           
           git config --global user.email ${repoOwnerEmail};
