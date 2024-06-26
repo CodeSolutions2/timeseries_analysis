@@ -134,4 +134,4 @@ jobs:
           git merge main --ff-only;
           git add -A; 
           git diff-index --quiet HEAD || git commit -m "add files" --allow-empty;
-          git push https:/${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}@github.com/${repoOwner}/${repoName}.git
+          git push
