@@ -1,11 +1,11 @@
-name: Updating a GitHub key - REPOB_V0_TOKEN0
+name: Updating a GitHub key - REPOB_V0_TOKEN1
 
 on:
   schedule:
-    - cron: '0 0,12 * * *'
+    - cron: '0 6,18 * * *'
 
 jobs:
-  job0_update_secret_test:
+  job0_update_REPOB_V0_TOKEN1:
     runs-on: ubuntu-latest
 
     permissions:
@@ -18,7 +18,6 @@ jobs:
       - name: Assign a new value to the secret
         uses: actions/github-script@v6
         env:
-          REPOB_V0_TOKEN0: '${{ secrets.REPOB_V0_TOKEN0 }}'
           REPOB_V0_TOKEN1: '${{ secrets.REPOB_V0_TOKEN1 }}'
         with:
           result-encoding: string
@@ -34,21 +33,12 @@ jobs:
             });
 
             // --------------------------------
-            
-            // Re-assign the new_secret_value to Github Actions Secret
-            await github.rest.actions.createOrUpdateRepoSecret({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                secret_name: 'REPOB_V0_TOKEN0',
-                encrypted_value: btoa(publicKey_str),
-                key_id: publicKey_str.data.key_id,
-              });
 
-              // Re-assign the new_secret_value to Github Actions Secret
+            // Re-assign the new_secret_value to Github Actions Secret
             await github.rest.actions.createOrUpdateRepoSecret({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 secret_name: 'REPOB_V0_TOKEN1',
                 encrypted_value: btoa(publicKey_str),
                 key_id: publicKey_str.data.key_id,
-              });
+            });
