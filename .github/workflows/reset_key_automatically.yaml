@@ -22,7 +22,6 @@ jobs:
           REPOB_V0: "${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}"
         with:
           result-encoding: string
-          github-token: ${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}
           script: |
             var n = 1;
 
