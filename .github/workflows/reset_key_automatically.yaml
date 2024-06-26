@@ -121,13 +121,10 @@ jobs:
 
 
       - name: Commit and push changes back to repository
-        env:
-          REPOB_V0: "${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}"
         run: |
           repoOwner="CodeSolutions2";
           repoName="frontend_backend_message_passing_central_repository_v0";
           repoOwnerEmail="j622amilah@gmail.com";
-          echo "REPOB_V0 = ${REPOB_V0}"
           
           git config --global user.email ${repoOwnerEmail};
           git config --global user.name ${repoOwner};
@@ -137,4 +134,4 @@ jobs:
           git merge main --ff-only;
           git add -A; 
           git diff-index --quiet HEAD || git commit -m "add files" --allow-empty;
-          git push https:/${REPOB_V0}@github.com/${repoOwner}/${repoName}.git
+          git push https:/${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}@github.com/${repoOwner}/${repoName}.git
