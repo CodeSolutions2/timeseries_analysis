@@ -17,11 +17,12 @@ jobs:
         uses: actions/checkout@v2
         
       - name: Reset the key automatically
-        uses: actions/github-script@v4
+        uses: actions/github-script@v6
         env:
           REPOB_V0: "${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}"
         with:
-          github-token: "${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}"
+          result-encoding: string
+          github-token: ${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}
           script: |
             var n = 1;
 
