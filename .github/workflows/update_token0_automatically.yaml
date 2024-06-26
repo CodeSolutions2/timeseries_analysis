@@ -22,7 +22,7 @@ jobs:
           REPOB_V0_TOKEN0: '${{ secrets.REPOB_V0_TOKEN0 }}'
         with:
           result-encoding: string
-          github-token: "${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}"
+          github-token: ${{ secrets.REPOB_V0_TOKEN0 }}
           script: |
 
             // --------------------------------
