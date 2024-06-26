@@ -1,8 +1,9 @@
 name: Updating a GitHub key - REPOB_V0_TOKEN0
 
 on:
-  schedule:
-    - cron: '0 0,12 * * *'
+  push:
+    branches:
+      - main
 
 jobs:
   job0_update_REPOB_V0_TOKEN0:
@@ -21,7 +22,7 @@ jobs:
           REPOB_V0_TOKEN0: '${{ secrets.REPOB_V0_TOKEN0 }}'
         with:
           result-encoding: string
-          github-token: ${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}
+          github-token: "${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}"
           script: |
 
             // --------------------------------
