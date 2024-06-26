@@ -1,4 +1,4 @@
-name: automatically reset REPOB key with any change to repo
+name: automatically reset (salt, encrypt) REPOB key for Frontend file
 
 on:
   push:
