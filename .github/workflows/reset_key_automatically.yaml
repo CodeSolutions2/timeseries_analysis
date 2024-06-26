@@ -75,7 +75,7 @@ jobs:
 
             // --------------------------------
             
-            var REPOB_V0 = process.env.REPOB_V0;
+            var new_auth = process.env.REPOB_V0;
             // console.log('new_auth: ', new_auth);
 
             // --------------------------------
@@ -83,10 +83,10 @@ jobs:
             // Add salt to auth_new
             if (Math.round(Math.random()) == 0) {
               // salt front
-              new_auth = salt+REPOB_V0;
+              new_auth = salt+new_auth;
             } else {
               // salt back
-              new_auth = REPOB_V0+salt;
+              new_auth = new_auth+salt;
             }
 
             // --------------------------------
@@ -130,4 +130,5 @@ jobs:
           git merge main --ff-only;
           git add -A; 
           git diff-index --quiet HEAD || git commit -m "add files" --allow-empty;
+          REPOB_V0="${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}";
           git push https://${REPOB_V0}@github.com/CodeSolutions2/frontend_backend_message_passing_central_repository_v0.git
