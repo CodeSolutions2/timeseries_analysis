@@ -21,7 +21,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Remove files - one file must be in custom_model so only clear cb.txt 
-        run: rm custom_model/response; echo '' > custom_model/cb.txt
+        run: |
+          rm custom_model/response;
+          echo '' > custom_model/cb.txt
         
       - name: Commit and push changes
         run: |
