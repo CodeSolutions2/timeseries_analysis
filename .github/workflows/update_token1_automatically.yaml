@@ -1,9 +1,8 @@
 name: Updating a GitHub key - REPOB_V0_TOKEN1
 
 on:
-  push:
-    branches:
-      - main
+  schedule:
+    - cron: '0 6,18 * * *'
 
 jobs:
   job0_update_REPOB_V0_TOKEN1:
