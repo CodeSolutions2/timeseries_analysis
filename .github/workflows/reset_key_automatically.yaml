@@ -19,9 +19,9 @@ jobs:
       - name: Reset the key automatically
         uses: actions/github-script@v4
         env:
-          REPOB_V0: '${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}'
+          REPOB_V0: "${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}"
         with:
-          github-token: ${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}
+          github-token: "${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}"
           script: |
             var n = 1;
 
