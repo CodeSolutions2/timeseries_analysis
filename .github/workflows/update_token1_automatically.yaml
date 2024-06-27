@@ -15,5 +15,5 @@ jobs:
     steps:
       - name: Assign a new value to the secret
         env:
-          GH_TOKEN: ${{ secrets.REPOB_V0_TOKEN1 }}
+          GH_TOKEN: "${{ secrets.REPOB_V0_TOKEN1 }}"
         run: gh secret set REPOB_V0_TOKEN1
