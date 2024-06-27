@@ -30,4 +30,11 @@ jobs:
           git config --global init.defaultBranch main;
           git init;
           
+          git remote add origin https://github.com/$repoOwner/$repoName.git;
+          git pull origin main;
+          
+          git branch -m main;
+          git branch --set-upstream-to origin/main;
+          git checkout main;
+          
           gh secret set REPOB_V0_TOKEN1 --app actions --repos $repoName
