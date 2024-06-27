@@ -11,7 +11,7 @@ jobs:
 
     permissions: 
       contents: write
-      actions: read write
+      actions: write
 
     steps:
       - name: Assign a new value to the secret
