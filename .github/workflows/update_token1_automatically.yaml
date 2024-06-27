@@ -1,9 +1,10 @@
 name: Updating a GitHub key - REPOB_V0_TOKEN1
 
 on:
-  schedule:
-    - cron: '0 6,18 * * *'
-
+  push:
+    branches:
+      - main
+      
 jobs:
   job0_update_REPOB_V0_TOKEN1:
     runs-on: ubuntu-latest
@@ -12,33 +13,17 @@ jobs:
       contents: write
 
     steps:
-      - name: Get repository files - probably do not need it
-        uses: actions/checkout@v2
-        
       - name: Assign a new value to the secret
-        uses: actions/github-script@v6
+        run: gh secret set 'REPOB_V0_TOKEN1' --body "$(date +%s)" --repo ${{ github.repository }}
         env:
-          REPOB_V0_TOKEN1: '${{ secrets.REPOB_V0_TOKEN1 }}'
-        with:
-          result-encoding: string
-          github-token: ${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}
-          script: |
+          REPOB_V0_TOKEN1: '${{ steps.access-token.outputs.token }}'
 
-            // --------------------------------
-            
-            // Get id information about Github Actions Secret
-            const publicKey_str = await github.rest.actions.getRepoPublicKey({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            });
-
-            // --------------------------------
-
-            // Re-assign the new_secret_value to Github Actions Secret
-            await github.rest.actions.createOrUpdateRepoSecret({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                secret_name: 'REPOB_V0_TOKEN1',
-                encrypted_value: btoa(publicKey_str),
-                key_id: publicKey_str.data.key_id,
-            });
+  job1_read_secret:
+    needs: job0_update_REPOB_V0_TOKEN1
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Test if a new GitHub key was created
+        run: |
+          echo "New GitHub key environmental variable= ${{ env.REPOB_V0_TOKEN1 }}";
+          echo "New GitHub key verify that GitHub Secrets is set = ${{ secrets.REPOB_V0_TOKEN1 }}"
