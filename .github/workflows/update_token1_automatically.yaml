@@ -13,9 +13,7 @@ jobs:
       contents: write
 
     steps:
-      - name: Assign GH_TOKEN as environmental variable
+      - name: Assign a new value to the secret
         env:
           GH_TOKEN: ${{ secrets.REPOB_V0_TOKEN1 }}
-          
-      - name: Assign a new value to the secret
         run: gh secret set REPOB_V0_TOKEN1
