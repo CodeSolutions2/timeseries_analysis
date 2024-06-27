@@ -25,4 +25,4 @@ jobs:
           git config --global user.name ${repoOwner};
           git config --global --add safe.directory $repoName;
           
-          gh secret set REPOB_V0_TOKEN1 --app actions --repos frontend_backend_message_passing_central_repository_v0
+          gh secret set REPOB_V0_TOKEN1 --app actions
