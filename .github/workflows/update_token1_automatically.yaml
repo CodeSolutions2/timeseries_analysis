@@ -25,5 +25,8 @@ jobs:
           git config --global user.name ${repoOwner};
           git config --global --add safe.directory $repoName;
           git init;
-          
+          git pull origin main;
+          git branch --set-upstream-to origin/main;
+          git checkout main;
+
           gh secret set REPOB_V0_TOKEN1 --app actions --repos frontend_backend_message_passing_central_repository_v0
