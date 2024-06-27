@@ -31,9 +31,13 @@ jobs:
           git init;
           remote_name=$(git remote -v);
           echo "remote_name = $remote_name";
-          git pull $remote_name main;
+          if [[ $remote_name -eq "" ]];then;
+            git pull origin main;
+          else
+            git pull $remote_name main;
+          fi;
           git branch -m main;
-          git branch --set-upstream-to=$remote_name/main main; 
+          git branch --set-upstream-to origin/main;
           git checkout main;
           
           gh secret set REPOB_V0_TOKEN1 --app actions --repos $repoName
