@@ -12,6 +12,7 @@ jobs:
     permissions: 
       contents: write
       actions: write
+      id-token: write
 
     steps:
       - name: Assign a new value to the secret
