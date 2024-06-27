@@ -29,9 +29,8 @@ jobs:
           git config --global --add safe.directory $main_directory;
           git config --global init.defaultBranch main;
           git init;
-          git pull origin main;
+          git pull;
           git branch -m main;
-          git branch --set-upstream-to origin/main;
           git checkout main;
           
           gh secret set REPOB_V0_TOKEN1 --app actions --repos $repoName
