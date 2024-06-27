@@ -8,12 +8,12 @@ on:
 jobs:
   job0_update_REPOB_V0_TOKEN1:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.REPOB_V0_TOKEN1 }}
 
     permissions:
       contents: write
 
     steps:
       - name: Assign a new value to the secret
-        env:
-          GH_TOKEN: "${{ secrets.REPOB_V0_TOKEN1 }}"
         run: gh secret set REPOB_V0_TOKEN1
