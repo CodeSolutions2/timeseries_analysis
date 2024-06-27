@@ -9,9 +9,9 @@ jobs:
   job0_update_REPOB_V0_TOKEN1:
     runs-on: ubuntu-latest
 
-    permissions:
+    permissions: 
       contents: write
-      actions: read and write
+      actions: read write
 
     steps:
       - name: Assign a new value to the secret
