@@ -29,13 +29,7 @@ jobs:
           git config --global --add safe.directory $main_directory;
           git config --global init.defaultBranch main;
           git init;
-          remote_name=$(git remote -v);
-          echo "remote_name = $remote_name";
-          if [[ $remote_name -eq "" ]];then;
-            git pull origin main;
-          else
-            git pull $remote_name main;
-          fi;
+          git pull origin main;
           git branch -m main;
           git branch --set-upstream-to origin/main;
           git checkout main;
