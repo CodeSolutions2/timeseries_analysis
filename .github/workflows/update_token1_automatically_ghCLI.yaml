@@ -26,9 +26,12 @@ jobs:
           main_directory=$(echo "/home/runner/work/$repoName");
           echo "main_directory = $main_directory";
           cd $main_directory;
+          URL=$(echo "https://${{ env.GH_TOKEN }}@github.com/$repoOwner/$repoName.git");
+          echo "URL = $URL";
           
           git config --global user.email ${repoOwnerEmail};
           git config --global user.name ${repoOwner};
+          git config --global remote.origin.url $URL;
           git config --global --add safe.directory $main_directory;
           git config --global init.defaultBranch main;
           git init;
