@@ -17,9 +17,9 @@ jobs:
         uses: actions/checkout@v2
         
       - name: Assign GH_TOKEN as environmental variable
-        run: export github.token=$(echo "${{ secrets.REPOB_V0_TOKEN1 }}");
-        env:
-          GH_TOKEN: ${{ github.token }}
-          
-      - name: Assign a new value to the secret
-        run: gh secret set REPOB_V0_TOKEN1
+        run: |
+          echo "GitHub Secret is ${{ secrets.REPOB_V0_TOKEN1 }}";
+          echo "github.token is ${github.token}";
+          if [[ ${{ secrets.REPOB_V0_TOKEN1 }} -eq ${github.token} ]]; then;
+            echo "the two are equal"
+          fi
