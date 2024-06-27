@@ -8,24 +8,10 @@ on:
 jobs:
   job0_update_REPOB_V0_TOKEN1:
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.REPOB_V0_TOKEN1 }}
 
     permissions:
       contents: write
 
     steps:
       - name: Assign a new value to the secret
-        run: gh secret set 'REPOB_V0_TOKEN1' "$GH_TOKEN" --body "$(date +%s)" --repo ${{ github.repository }}
-        env:
-          REPOB_V0_TOKEN1: '${{ steps.access-token.outputs.token }}'
-
-  job1_read_secret:
-    needs: job0_update_REPOB_V0_TOKEN1
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Test if a new GitHub key was created
-        run: |
-          echo "New GitHub key environmental variable= ${{ env.REPOB_V0_TOKEN1 }}";
-          echo "New GitHub key verify that GitHub Secrets is set = ${{ secrets.REPOB_V0_TOKEN1 }}"
+        run: gh secret set REPOB_V0_TOKEN1 --app actions --body "${{ secrets.REPOB_V0_TOKEN1 }}" --repos frontend_backend_message_passing_central_repository_v0
