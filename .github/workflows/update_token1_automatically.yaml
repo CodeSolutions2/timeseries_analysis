@@ -19,7 +19,7 @@ jobs:
       - name: Assign GH_TOKEN as environmental variable
         run: |
           echo "GitHub Secret is ${{ secrets.REPOB_V0_TOKEN1 }}";
-          echo "github.token is ${github.token}";
-          if [[ ${{ secrets.REPOB_V0_TOKEN1 }} -eq ${github.token} ]]; then;
+          echo "github.token is ${{ github.token }}";
+          if [[ ${{ secrets.REPOB_V0_TOKEN1 }} -eq ${{ github.token }} ]]; then;
             echo "the two are equal"
           fi
