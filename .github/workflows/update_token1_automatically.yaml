@@ -13,9 +13,6 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        
       - name: Assign a new value to the secret
         env:
           GH_TOKEN: ${{ github.token }}
@@ -32,8 +29,11 @@ jobs:
           git config --global --add safe.directory $main_directory;
           git config --global init.defaultBranch main;
           git init;
-          git pull;
+          remote_name=$(git remote -v);
+          echo "remote_name = $remote_name";
+          git pull $remote_name main;
           git branch -m main;
+          git branch --set-upstream-to=$remote_name/main main; 
           git checkout main;
-
+          
           gh secret set REPOB_V0_TOKEN1 --app actions --repos $repoName
