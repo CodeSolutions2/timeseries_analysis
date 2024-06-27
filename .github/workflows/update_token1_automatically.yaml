@@ -12,6 +12,9 @@ jobs:
     permissions: write-all
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
       - name: Assign a new value to the secret
         env:
           GH_TOKEN: ${{ github.token }}
