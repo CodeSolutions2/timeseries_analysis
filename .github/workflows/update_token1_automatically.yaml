@@ -9,7 +9,7 @@ jobs:
   job0_update_REPOB_V0_TOKEN1:
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ secrets.REPOB_V0_TOKEN1 || github.token }}
+      GH_TOKEN: ${{ secrets.REPOB_V0_TOKEN1 }}
 
     permissions:
       contents: write
