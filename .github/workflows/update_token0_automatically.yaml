@@ -15,16 +15,12 @@ jobs:
     steps:
       - name: Get repository files - probably do not need it
         uses: actions/checkout@v2
-
-      - name: Assign GH_TOKEN as environmental variable
-        run: export github.token="${{ secrets.REPOB_V0_TOKEN0 }}";
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
         
       - name: Assign a new value to the secret
         uses: actions/github-script@v6
         env:
           REPOB_V0_TOKEN0: '${{ secrets.REPOB_V0_TOKEN0 }}'
+          GITHUB_TOKEN: ${{ github.token }}
         with:
           result-encoding: string
           github-token: ${{ secrets.REPOB_V0_TOKEN0 || secrets.REPOB_V0_TOKEN1 }}
