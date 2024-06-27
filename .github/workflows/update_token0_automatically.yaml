@@ -1,9 +1,10 @@
 name: Updating a GitHub key - REPOB_V0_TOKEN0
 
 on:
-  schedule:
-    - cron: '0 0,12 * * *'
-
+  push:
+    branches:
+      - main
+    
 jobs:
   job0_update_REPOB_V0_TOKEN0:
     runs-on: ubuntu-latest
@@ -14,6 +15,11 @@ jobs:
     steps:
       - name: Get repository files - probably do not need it
         uses: actions/checkout@v2
+
+      - name: Assign GH_TOKEN as environmental variable
+        run: export github.token="${{ secrets.REPOB_V0_TOKEN0 }}";
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         
       - name: Assign a new value to the secret
         uses: actions/github-script@v6
