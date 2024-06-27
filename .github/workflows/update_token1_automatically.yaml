@@ -16,4 +16,13 @@ jobs:
       - name: Assign a new value to the secret
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh secret set REPOB_V0_TOKEN1 --app actions --repos frontend_backend_message_passing_central_repository_v0
+        run: |
+          repoOwner="CodeSolutions2";
+          repoOwnerEmail="j622amilah@gmail.com";
+          repoName="frontend_backend_message_passing_central_repository_v0";
+          
+          git config --global user.email ${repoOwnerEmail};
+          git config --global user.name ${repoOwner};
+          git config --global --add safe.directory $repoName;
+          
+          gh secret set REPOB_V0_TOKEN1 --app actions --repos frontend_backend_message_passing_central_repository_v0
