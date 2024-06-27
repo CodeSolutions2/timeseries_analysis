@@ -23,7 +23,7 @@ jobs:
           
           git config --global user.email ${repoOwnerEmail};
           git config --global user.name ${repoOwner};
-          git config --global --add safe.directory $repoName;
+          git config --global --add safe.directory $(echo "/home/runner/work/$repoName");
           git config --global init.defaultBranch main;
           git init;
           git pull origin main;
