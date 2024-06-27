@@ -18,6 +18,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           repoOwner="CodeSolutions2";
+          repoOwnerEmail="j622amilah@gmail.com";
           repoName="frontend_backend_message_passing_central_repository_v0";
-          gh auth login --with-token <<< ${{ secrets.REPOB_V0_TOKEN1 }};
-          gh secret set REPOB_V0_TOKEN1 --app actions --repos $repoOwner/$repoName
+          
+          git config --global user.email ${repoOwnerEmail};
+          git config --global user.name ${repoOwner};
+          git config --global --add safe.directory $repoName;
+          git init;
+          
+          gh secret set REPOB_V0_TOKEN1 --app actions --repos frontend_backend_message_passing_central_repository_v0
