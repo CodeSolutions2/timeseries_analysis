@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Assign a new value to the secret
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.REPOB_V0_TOKEN1 || github.token }}
           # The `github.token` is not equivalent to a GitHub Actions secret token. The `github.token` is a special token provided by GitHub that allows actions to authenticate and interact with the GitHub API on behalf of the workflow run. It is automatically generated and available for use within GitHub Actions workflows.
         run: |
           repoOwner="CodeSolutions2";
