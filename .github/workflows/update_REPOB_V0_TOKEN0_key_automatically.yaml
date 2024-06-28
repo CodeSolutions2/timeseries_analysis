@@ -1,0 +1,41 @@
+name: Updating a GitHub key - REPOB_V0_TOKEN0
+
+on:
+  schedule:
+    - cron: '0 0,12 * * *'
+      
+jobs:
+  job0_update_REPOB_V0_TOKEN0:
+    runs-on: ubuntu-latest
+
+    permissions: write-all
+
+    steps:
+      - name: Assign a new value to the secret
+        env:
+          GH_TOKEN: ${{ secrets.REPOB_V0_TOKEN0 || github.token }}
+          # The `github.token` is not equivalent to a GitHub Actions secret token. The `github.token` is a special token provided by GitHub that allows actions to authenticate and interact with the GitHub API on behalf of the workflow run. It is automatically generated and available for use within GitHub Actions workflows.
+          # However, if GH_TOKEN: ${{ secrets.REPOB_V0_TOKEN0 }} OR GH_TOKEN: ${{ github.token }}, it will throw an error.
+        run: |
+          repoOwner="CodeSolutions2";
+          repoOwnerEmail="j622amilah@gmail.com";
+          repoName="frontend_backend_message_passing_central_repository_v0";
+          main_directory=$(echo "/home/runner/work/$repoName");
+          cd $main_directory;
+          URL=$(echo "https://${{ env.GH_TOKEN }}@github.com/$repoOwner/$repoName.git");
+          
+          git config --global user.email ${repoOwnerEmail};
+          git config --global user.name ${repoOwner};
+          git config --global remote.origin.url $URL;
+          git config --global --add safe.directory $main_directory;
+          git config --global init.defaultBranch main;
+          git init;
+          
+          git remote add origin https://github.com/$repoOwner/$repoName.git;
+          git pull origin main;
+          
+          git branch -m main;
+          git branch --set-upstream-to origin/main;
+          git checkout main;
+          
+          gh secret set REPOB_V0_TOKEN0 --app actions --body ${{ secrets.REPOB_V0_TOKEN0 }} --repos $repoOwner/$repoName
