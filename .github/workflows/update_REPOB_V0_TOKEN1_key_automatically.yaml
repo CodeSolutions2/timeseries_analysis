@@ -20,8 +20,13 @@ jobs:
           
       - name: Assign a new value to the secret
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.REPOB_V0_TOKEN1 }} 
+          # GH_TOKEN: ${{ github.token }} # this do not give an error about , but who knows what github.token is 
         run: |
+          echo "GitHub Secret is ${{ secrets.REPOB_V0_TOKEN1 }}";
+          echo "github.token is ${{ github.token }}";
+          echo "env.GH_TOKEN is ${{ env.GH_TOKEN }}";
+          
           repoOwner="CodeSolutions2";
           repoOwnerEmail="j622amilah@gmail.com";
           repoName="frontend_backend_message_passing_central_repository_v0";
