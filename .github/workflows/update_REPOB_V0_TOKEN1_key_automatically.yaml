@@ -1,0 +1,48 @@
+name: Updating a GitHub key - REPOB_V0_TOKEN1
+
+on:
+  push:
+    branches:
+      - main
+      
+jobs:
+  job0_update_REPOB_V0_TOKEN1:
+    runs-on: ubuntu-latest
+
+    permissions: write-all
+
+    steps:
+      - name: Checkout code
+        # Checks-out the repository under $GITHUB_WORKSPACE
+        uses: actions/checkout@v2
+        with:
+          repo-token: ${{ secrets.REPOB_V0_TOKEN1 }}
+          
+      - name: Assign a new value to the secret
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          repoOwner="CodeSolutions2";
+          repoOwnerEmail="j622amilah@gmail.com";
+          repoName="frontend_backend_message_passing_central_repository_v0";
+          main_directory=$(echo "/home/runner/work/$repoName");
+          echo "main_directory = $main_directory";
+          cd $main_directory;
+          URL=$(echo "https://${{ env.GH_TOKEN }}@github.com/$repoOwner/$repoName.git");
+          echo "URL = $URL";
+          
+          git config --global user.email ${repoOwnerEmail};
+          git config --global user.name ${repoOwner};
+          git config --global remote.origin.url $URL;
+          git config --global --add safe.directory $main_directory;
+          git config --global init.defaultBranch main;
+          git init;
+          
+          git remote add origin https://github.com/$repoOwner/$repoName.git;
+          git pull origin main;
+          
+          git branch -m main;
+          git branch --set-upstream-to origin/main;
+          git checkout main;
+          
+          gh secret set REPOB_V0_TOKEN1 --app actions --repos $repoName
