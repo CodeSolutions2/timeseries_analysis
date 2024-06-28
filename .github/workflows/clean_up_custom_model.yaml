@@ -22,10 +22,10 @@ jobs:
 
       - name: Remove files - one file must be in custom_model so only clear cb.txt 
         run: |
-          if [ -f openAIassistant/response ]; then
+          if [ -f custom_model/response ]; then
             rm openAIassistant/response;
           fi;
-          if [ -f openAIassistant/cb.txt ]; then
+          if [ -f custom_model/cb.txt ]; then
             rm openAIassistant/cb.txt
           fi;
         
