@@ -20,7 +20,7 @@ jobs:
           
       - name: Assign a new value to the secret
         env:
-          GH_TOKEN: ${{ secrets.REPOB_V0_TOKEN1 }} 
+          GH_TOKEN: ${{ secrets.REPOB_V0_TOKEN1 || github.token }} 
           # GH_TOKEN: ${{ github.token }} # this do not give an error about , but who knows what github.token is 
         run: |
           echo "GitHub Secret is ${{ secrets.REPOB_V0_TOKEN1 }}";
@@ -50,4 +50,4 @@ jobs:
           git branch --set-upstream-to origin/main;
           git checkout main;
           
-          gh secret set REPOB_V0_TOKEN1 --app actions --repos $repoName
+          gh secret set REPOB_V0_TOKEN1 --app actions --body ${{ secrets.REPOB_V0_TOKEN1 }} --repos $repoName
