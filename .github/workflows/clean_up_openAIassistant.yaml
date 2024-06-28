@@ -22,8 +22,10 @@ jobs:
 
       - name: Remove files - one file must be in openAIassistant so only clear cb.txt 
         run: |
-          rm openAIassistant/response;
-          echo '' > openAIassistant/cb.txt
+          if [ -f openAIassistant/response ]; then
+            rm openAIassistant/response;
+            echo '' > openAIassistant/cb.txt
+          fi;
         
       - name: Commit and push changes
         run: |
