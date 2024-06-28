@@ -1,8 +1,0 @@
-Input text is what are the main topics?
-Repository name is my_chatbot
-{
-  "message": "Bad credentials",
-  "documentation_url": "https://docs.github.com/rest",
-  "status": "401"
-}
-Fri Jun 28 16:23:19 UTC 2024
