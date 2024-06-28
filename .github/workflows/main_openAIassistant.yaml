@@ -49,13 +49,8 @@ jobs:
           git config --global remote.origin.url $URL;
           git config --global --add safe.directory $main_directory;
           git config --global init.defaultBranch main;
-          git init;
 
-          git remote add origin https://github.com/$repoOwner/$repoName.git;
           git pull origin main;
-          
-          git branch -m main;
-          git branch --set-upstream-to origin/main;
           git checkout main;
           
           git merge main --ff-only; 
