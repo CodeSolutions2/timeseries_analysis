@@ -24,6 +24,8 @@ jobs:
         run: |
           if [ -f openAIassistant/response ]; then
             rm openAIassistant/response;
+          fi;
+          if [ -f openAIassistant/cb.txt ]; then
             echo '' > openAIassistant/cb.txt
           fi;
         
