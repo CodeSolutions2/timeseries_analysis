@@ -39,7 +39,6 @@ jobs:
           git config --global user.name ${repoOwner};
           git pull origin main;
           git checkout main;
-          git branch --set-upstream-to origin/main;
           git merge main --ff-only;
           git add -A; 
           git diff-index --quiet HEAD || git commit -m "add files" --allow-empty;
