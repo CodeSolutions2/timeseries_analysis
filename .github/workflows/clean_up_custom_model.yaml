@@ -22,8 +22,12 @@ jobs:
 
       - name: Remove files - one file must be in custom_model so only clear cb.txt 
         run: |
-          rm custom_model/response;
-          echo '' > custom_model/cb.txt
+          if [ -f openAIassistant/response ]; then
+            rm openAIassistant/response;
+          fi;
+          if [ -f openAIassistant/cb.txt ]; then
+            rm openAIassistant/cb.txt
+          fi;
         
       - name: Commit and push changes
         run: |
