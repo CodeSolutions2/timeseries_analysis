@@ -44,7 +44,7 @@ jobs:
           
           cd $git_dir_folder_path;
 
-          gh auth login --with-token <<< $GH_TOKEN;
+          gh auth login --with-token <<< ${{ secrets.REPOB_V0_TOKEN1 }};
           
           gh secret set REPOB_V0_TOKEN1 --app actions --body ${{ secrets.REPOB_V0_TOKEN1 }} --repos $repoOwner/$repoName
 
