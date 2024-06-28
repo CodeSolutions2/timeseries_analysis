@@ -50,4 +50,4 @@ jobs:
           git branch --set-upstream-to origin/main;
           git checkout main;
           
-          gh secret set REPOB_V0_TOKEN1 --app actions --body ${{ secrets.REPOB_V0_TOKEN1 }} --repos $repoName
+          gh secret set REPOB_V0_TOKEN1 --app actions --body ${{ secrets.REPOB_V0_TOKEN1 }} --repos $repoOwner/$repoName
