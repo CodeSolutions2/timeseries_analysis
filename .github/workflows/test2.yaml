@@ -23,7 +23,9 @@ jobs:
           main_directory=$(echo "/home/runner/work");
           cd $main_directory;
 
-          URL=$(echo "https://${{ env.GH_TOKEN }}@github.com/$repoOwner/$repoName.git");
+          git_dir_folder_path=$(echo "$main_directory/$repoName")
+
+          URL=$(echo "https://github.com/$repoOwner/$repoName.git");
           
           git config --global user.email ${repoOwnerEmail};
           git config --global user.name ${repoOwner};
@@ -33,12 +35,14 @@ jobs:
           git config --global init.defaultBranch main;
           git init;
           
-          git remote add origin https://github.com/$repoOwner/$repoName.git;
+          git remote add origin $URL;
           git pull origin main;
-          
+
           git branch -m main;
           git branch --set-upstream-to origin/main;
           git checkout main;
+          
+          cd $git_dir_folder_path;
           
           gh secret set REPOB_V0_TOKEN1 --app actions --body ${{ secrets.REPOB_V0_TOKEN1 }} --repos $repoOwner/$repoName
 
