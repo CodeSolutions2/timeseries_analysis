@@ -12,6 +12,9 @@ jobs:
     permissions: write-all
 
     steps:
+      - name: Get repository files (equivalent to git pull)
+        uses: actions/checkout@v2
+        
       - name: Assign a new value to the secret
         run: |
           repoOwner=$(echo "${{ github.repository }}" | cut -d '/' -f 1);
