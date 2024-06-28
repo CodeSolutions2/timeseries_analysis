@@ -14,12 +14,9 @@ jobs:
     steps:
       - name: Assign a new value to the secret
         env:
-          GH_TOKEN: ${{ secrets.REPOB_V0_TOKEN1 || github.token }} 
+          GH_TOKEN: ${{ github.token }}
+          # The `github.token` is not equivalent to a GitHub Actions secret token. The `github.token` is a special token provided by GitHub that allows actions to authenticate and interact with the GitHub API on behalf of the workflow run. It is automatically generated and available for use within GitHub Actions workflows.
         run: |
-          echo "GitHub Secret is ${{ secrets.REPOB_V0_TOKEN1 }}";
-          echo "github.token is ${{ github.token }}";
-          echo "env.GH_TOKEN is ${{ env.GH_TOKEN }}";
-          
           repoOwner="CodeSolutions2";
           repoOwnerEmail="j622amilah@gmail.com";
           repoName="frontend_backend_message_passing_central_repository_v0";
