@@ -26,7 +26,7 @@ jobs:
             rm openAIassistant/response;
           fi;
           if [ -f openAIassistant/cb.txt ]; then
-            echo '' > openAIassistant/cb.txt
+            rm openAIassistant/cb.txt
           fi;
         
       - name: Commit and push changes
