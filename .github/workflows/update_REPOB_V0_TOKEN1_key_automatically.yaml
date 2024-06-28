@@ -12,6 +12,12 @@ jobs:
     permissions: write-all
 
     steps:
+      - name: Checkout code
+        # Checks-out the repository under $GITHUB_WORKSPACE
+        uses: actions/checkout@v2
+        with:
+          repo-token: ${{ secrets.REPOB_V0_TOKEN1 }}
+          
       - name: Assign a new value to the secret
         env:
           GH_TOKEN: ${{ secrets.REPOB_V0_TOKEN1 || github.token }} 
