@@ -31,7 +31,7 @@ jobs:
           git branch --set-upstream-to origin/main;
           git merge main --ff-only;
 
-          gh secret set REPOB_V0_TOKEN1 --app actions --body ${{ secrets.REPOB_V0_TOKEN1 }} --repos $repoOwner/$repoName
+          gh secret set REPOB_V0_TOKEN0 --app actions --body ${{ secrets.REPOB_V0_TOKEN0 }} --repos $repoOwner/$repoName
           
           git add -A; 
           git diff-index --quiet HEAD || git commit -m "add files" --allow-empty;
