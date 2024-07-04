@@ -32,8 +32,6 @@ jobs:
           git merge main --ff-only;
 
           gh secret set REPOB_V0_TOKEN1 --app actions --body ${{ secrets.REPOB_V0_TOKEN1 }} --repos $repoOwner/$repoName
-
-          gh secret update REPOB_V0_TOKEN1 --expires-at "$(date -u -d '+1 days' +'%Y-%m-%dT%H:%M:%SZ')"
           
           git add -A; 
           git diff-index --quiet HEAD || git commit -m "add files" --allow-empty;
