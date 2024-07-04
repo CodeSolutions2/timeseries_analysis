@@ -1,0 +1,8 @@
+Input text is what are my main problems and how can I solve them?
+Repository name is my_chatbot
+{
+  "message": "Bad credentials",
+  "documentation_url": "https://docs.github.com/rest",
+  "status": "401"
+}
+Thu Jul  4 11:29:38 UTC 2024
