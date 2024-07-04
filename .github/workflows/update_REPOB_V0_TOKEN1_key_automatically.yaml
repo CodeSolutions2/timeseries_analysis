@@ -29,7 +29,6 @@ jobs:
           git config --global push.autoSetupRemote true;
           git pull origin main;
           git checkout main;
-          git branch --set-upstream-to origin/main;
           git merge main --ff-only;
 
           gh secret set REPOB_V0_TOKEN1 --app actions --body ${{ secrets.REPOB_V0_TOKEN1 }} --repos $repoOwner/$repoName
