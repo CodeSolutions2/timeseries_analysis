@@ -124,14 +124,13 @@ async function view_fetched_data() {
 	}
 	console.log('X_2d_arr: ', X_2d_arr);
 	
-	
 	// -----------------------------------------------
 	
 	// Predict future data points
 	var model_type = document.getElementById("model_type").value;
 
 	if (model_type == 'LSTM') {
-		document.getElementById('notification').innerHTML += "model_type In progress.";
+		document.getElementById('notification').innerHTML = "model_type In progress.";
 
 		
 		var num_of_features_OR_colnum = 1;
@@ -144,7 +143,7 @@ async function view_fetched_data() {
 		const lstm = tf.layers.lstm({units: n_a, returnSequences: true, kernelInitializer: 'heNormal'});
 		const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
 		const output = lstm.apply(input);
-		console.log(JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
+		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
 
 		// OR
 		
@@ -158,7 +157,7 @@ async function view_fetched_data() {
 const model = tf.model({inputs: input, outputs: output});
 		
 	} else if (model_type == 'Forecasting') {
-		document.getElementById('notification').innerHTML += "model_type In progress.";
+		document.getElementById('notification').innerHTML = "model_type In progress.";
 
 		var num_of_features_OR_colnum = 1; // number of columns in xs
 		var num_of_outputs = 1;
@@ -174,7 +173,7 @@ const model = tf.model({inputs: input, outputs: output});
 		
 		
 	} else if (model_type == 'Transformer_based') {
-		document.getElementById('notification').innerHTML += "model_type In progress.";
+		document.getElementById('notification').innerHTML = "model_type In progress.";
 
 		// Step 0: Load a pretrained model 
 		// https://js.tensorflow.org/api/latest/#loadLayersModel
@@ -185,7 +184,6 @@ const model = tf.model({inputs: input, outputs: output});
 		// pretrained_model.layers.trainable = false;
 
 		// Obtain a layer from the pretrained model
-		// const
 
 		
 	} else {
