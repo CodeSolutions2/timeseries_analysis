@@ -58,7 +58,9 @@ div#error { position: relative; color: #bd1f17; }
 // -----------------------------------------------
 	
 window.addEventListener('beforeunload', function() {
-    window.location.href = window.location.href + '?nocache=' + new Date().getTime();
+	window.location.href = window.location.href + '?nocache=' + new Date().getTime();
+
+	document.getElementById("timeseries_data_source").selectedIndex = 0;
 });
 
 // -----------------------------------------------
@@ -89,6 +91,8 @@ async function view_fetched_data() {
 		
 		var Lat_lon_arr = await GET_LATITUDE_LONGITUDE(LOCATION);
 		var latitude = Lat_lon_arr.shift();
+		console.log('latitude: ', latitude);
+		console.log('longitude: ', Lat_lon_arr);
 		
 		var obj = await GET_weather_timeseries_data(latitude, Lat_lon_arr);
 		
@@ -130,6 +134,7 @@ async function view_fetched_data() {
 // -----------------------------------------------
 	
 async function GET_LATITUDE_LONGITUDE(LOCATION) {
+	
 	// [Step 0] Get latitude and longitude
 	// https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${GCP_API_KEY}
 	// OR
@@ -142,28 +147,41 @@ async function GET_LATITUDE_LONGITUDE(LOCATION) {
 	var out = await fetch_CORS(url, method, data, headers, return_type);
 	console.log('out: ', out); 
 
-	// Parse for correct location
-	
-
-	
-	return [45, 45];
+	// Parse for correct location: choose the first location because it will be most precise
+	return [Number(out[0].lat), Number(out[0].lon)];
 }
 
 // -----------------------------------------------
 	
 async function GET_weather_timeseries_data(latitude, longitude) {
-
+	
 	// [Step 0] Get weather data
 	// https://open-meteo.com/en/docs
-	// The API endpoint /v1/forecast accepts a geographical coordinate, a list of weather variables and responds with a JSON hourly weather forecast for 7 days. Time always starts at 0:00 today and contains 168 hours. If &forecast_days=16 is set, up to 16 days of forecast can be returned. All URL parameters are listed below:
+	// The API endpoint /v1/forecast accepts a geographical coordinate, a list of weather variables and responds with a JSON hourly weather forecast for 7 days. Time always starts at 0:00 today and contains 168 hours. If &forecast_days=16 is set, up to 16 days of forecast can be returned.
 
-	url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m`;
+	var method = 'GET';  // method: 'GET', 'POST'
+	var data = [];  // data: required data format for url address
+	var headers = {};
+	var return_type = 'json';  // return_type: 'json', 'blob', 'blob_file_pdf', 'arrayBuffer', 'text'
+
+	// --------------------------------
 	
-	method = 'GET';  // method: 'GET', 'POST'
-	return_type = 'json';  // return_type: 'json', 'blob', 'blob_file_pdf', 'arrayBuffer', 'text'
-	out = await fetch_CORS(url, method, data, headers, return_type);
-	console.log('out: ', out);
+	// Obtain weather [temperature] data from the past (Prediction)
+	// Return temperature every hour for the [previous 2 days OR more], such that the next day can be predicted
+	url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m&past_days=2&forecast_days=0`;
+	var open_meteo_past_data = await fetch_CORS(url, method, data, headers, return_type);
+	console.log('open_meteo_past_data: ', open_meteo_past_data);
 
+	// --------------------------------
+	
+	// Obtain weather [temperature] predictions by open-meteo (Actual)
+	// Return temperature every hour for the next day
+	url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m&past_days=0&forecast_days=1`;
+	var open_meteo_predictions = await fetch_CORS(url, method, data, headers, return_type);
+	console.log('open_meteo_predictions: ', open_meteo_predictions);
+
+	// --------------------------------
+	
 	// Parse for timeseries of [past weather] and [predictions of future weather]
 
 	var obj = {past_weather: Array.from({ length: 10 }, (_, ind) => ind),
