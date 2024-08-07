@@ -61,6 +61,8 @@ window.addEventListener('beforeunload', function() {
 	window.location.href = window.location.href + '?nocache=' + new Date().getTime();
 
 	document.getElementById("timeseries_data_source").selectedIndex = 0;
+	document.getElementById("LOCATION").value = "";
+	
 });
 
 // -----------------------------------------------
@@ -94,7 +96,7 @@ async function view_fetched_data() {
 		console.log('latitude: ', latitude);
 		console.log('longitude: ', Lat_lon_arr);
 		
-		var obj = await GET_weather_timeseries_data(latitude, Lat_lon_arr);
+		var array_object = await GET_weather_timeseries_data(latitude, Lat_lon_arr);
 		
 	} else if (timeseries_data_source == 'Custom_URL_endpoint') {
 		document.getElementById('notification').innerHTML = "In progress.";
@@ -104,18 +106,84 @@ async function view_fetched_data() {
 	}
 
 	// -----------------------------------------------
+
+	// Prepare the X matrix
+	var X_1d_arr = array_object[0].temperature_2m; // 48 long
+
+	var timesteps = 24;
+	var batch_size = Math.floor(X_1d_arr.length / timesteps);
+	
+	var X_2d_arr = [];
+	for (var i=0; i<batch_size; i++) {
+		var start = i*batch_size;
+		var stop = start + batch_size;
+		X_2d_arr.push(X_1d_arr.slice(start, stop););
+	}
+	console.log('X_2d_arr: ', X_2d_arr);
+	
+	
+	// -----------------------------------------------
 	
 	// Predict future data points
 	var model_type = document.getElementById("model_type").value;
 
 	if (model_type == 'LSTM') {
 		document.getElementById('notification').innerHTML += "model_type In progress.";
+
+		
+		var num_of_features_OR_colnum = 1;
+		var n_a = 8; // LSTMCell's number of units
+		
+
+		// Prediction of timeseries
+		// returnSequences: true = prediction at each data point, false = prediction at each timestep (uses all the timestep data to make one prediction)
+		// returnState: true = return the a and c matricies, false = do not return the a and c matricies
+		const lstm = tf.layers.lstm({units: n_a, returnSequences: true, kernelInitializer: 'heNormal'});
+		const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
+		const output = lstm.apply(input);
+		console.log(JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
+
+		// OR
+		
+		// Prediction of timeseries class
+		// var num_of_classes = 1; 
+		// const lstm = tf.layers.lstm({units: n_a, returnSequences: false});
+		// const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
+		// const denseLayer1 = tf.layers.dense({units: num_of_classes, activation: 'softmax'});
+		// const output = (denseLayer1.apply(input));
+
+const model = tf.model({inputs: input, outputs: output});
 		
 	} else if (model_type == 'Forecasting') {
 		document.getElementById('notification').innerHTML += "model_type In progress.";
+
+		var num_of_features_OR_colnum = 1; // number of columns in xs
+		var num_of_outputs = 1;
+
+		// Regression model
+		const input = tf.input({shape: [num_of_features_OR_colnum]}); 
+		const denseLayer1 = tf.layers.dense({units: 64, activation: 'relu'});
+		const denseLayer2 = tf.layers.dense({units: 64, activation: 'relu'});
+		const denseLayer3 = tf.layers.dense({units: 64, activation: 'relu'});
+		const denseLayer4 = tf.layers.dense({units: num_of_outputs});  
+		const output = denseLayer4.apply(denseLayer3.apply(denseLayer2.apply(denseLayer1.apply(input))));
+		const model = tf.model({inputs: input, outputs: output});
+		
 		
 	} else if (model_type == 'Transformer_based') {
 		document.getElementById('notification').innerHTML += "model_type In progress.";
+
+		// Step 0: Load a pretrained model 
+		// https://js.tensorflow.org/api/latest/#loadLayersModel
+		// const pretrained_model = await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/savedmodel/tsmixer/model.json');
+		// pretrained_model.summary();
+
+		// Step 1: Find the desired layer and freeze layers or not
+		// pretrained_model.layers.trainable = false;
+
+		// Obtain a layer from the pretrained model
+		// const
+
 		
 	} else {
 		document.getElementById('notification').innerHTML = "Please select a model type for timeseries prediction."; 
@@ -180,14 +248,7 @@ async function GET_weather_timeseries_data(latitude, longitude) {
 	var open_meteo_predictions = await fetch_CORS(url, method, data, headers, return_type);
 	console.log('open_meteo_predictions: ', open_meteo_predictions);
 
-	// --------------------------------
-	
-	// Parse for timeseries of [past weather] and [predictions of future weather]
-
-	var obj = {past_weather: Array.from({ length: 10 }, (_, ind) => ind),
-		  weather_predictions: Array.from({ length: 10 }, (_, ind) => ind)};
-	
-	return obj;
+	return [open_meteo_past_data.hourly, open_meteo_predictions.hourly];
 }
 
 // -----------------------------------------------
