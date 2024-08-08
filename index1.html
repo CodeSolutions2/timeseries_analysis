@@ -189,7 +189,7 @@ async function view_fetched_data() {
 		
 		const model = tf.model({inputs: input, outputs: output});
 
-		await model.compile({optimizer: 'adam', loss: 'meanSquaredError', metrics: ["meanAbsoluteError"]})
+		await model.compile({optimizer: 'adam', loss: 'meanSquaredError', metrics: ["meanSquaredError"]})
 			.then(async function() { 
 			// console.log('dict_obj.xs: ', dict_obj.xs); // Array [34, 4]
 			// console.log('dict_obj.ys: ', dict_obj.ys); // Array [34, 5]
