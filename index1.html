@@ -111,10 +111,13 @@ async function view_fetched_data() {
 	// -----------------------------------------------
 
 	// Prepare the X matrix
+
+	// open_meteo_past_data:
 	var X_1d_arr = array_object[0].temperature_2m; // 48 long
 
-	var timesteps = 24;
+	var timesteps = 6;
 	var batch_size = Math.floor(X_1d_arr.length / timesteps);
+	console.log('batch_size: ', batch_size);
 	
 	var X_2d_arr = [];
 	for (var i=0; i<batch_size; i++) {
@@ -123,6 +126,39 @@ async function view_fetched_data() {
 		X_2d_arr.push(X_1d_arr.slice(start, stop));
 	}
 	console.log('X_2d_arr: ', X_2d_arr);
+
+	const xs_2D = tf.tensor2d(X_2d_arr, [batch_size, timesteps]);  // this is size [ batch_size, 6 ]
+	console.log('xs_2D: ', xs_2D);  // it will output shape
+
+	// Change shape to [batch_size=?, timesteps=6, num_of_features=1]
+	const xs_3D = xs_2D.expandDims(2);
+	console.log('xs_3D: ', xs_3D);
+
+	
+	
+
+	// -------------------------------------------------
+
+	// Since we want y to be a continuous value like in regression, and not a discrete value like in classification, let y be the point after each x. Shift x to the right by one data point.
+	var Y_1d_arr = [X_1d_arr.at(0)].concat(X_1d_arr.slice(0, X_1d_arr.length-1));
+	console.log('Y_1d_arr: ', Y_1d_arr);
+
+	const ys_2D = tf.tensor2d(Y_1d_arr, [batch_size, timesteps]);  // this is size [ batch_size, 6 ]
+	console.log('ys_2D: ', ys_2D);  // it will output shape
+
+	// Change shape to [batch_size=?, timesteps=6, num_outputs=1]
+	const ys_3D = ys_2D.expandDims(2);
+	console.log('ys_3D: ', ys_3D);
+
+	
+	// let ys = tf.tensor2d(Yencoded, [rownum, 1], 'int32').flatten();  // flatten the 2D tensor as a 1Dtensor
+	// console.log('ys: ', ys);  // shape: Array [ 34 ]
+	
+	// ys needs to be in one-hot form, size [34, 5]
+	// ys = tf.oneHot(ys, num_of_classes);  // Array [34, 5]
+	// console.log('ys: ', ys);
+
+	// -------------------------------------------------
 	
 	// -----------------------------------------------
 	
