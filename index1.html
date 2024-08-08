@@ -119,12 +119,7 @@ async function view_fetched_data() {
 	var batch_size = Math.floor(X_1d_arr.length / timesteps);
 	console.log('batch_size: ', batch_size);
 	
-	var X_2d_arr = [];
-	for (var i=0; i<batch_size; i++) {
-		var start = i*batch_size;
-		var stop = start + batch_size;
-		X_2d_arr.push(X_1d_arr.slice(start, stop));
-	}
+	const X_2d_arr = await transform_1D_to_2D_batch_size_by_timesteps(X_1d_arr, batch_size, timesteps);
 	console.log('X_2d_arr: ', X_2d_arr);
 
 	const xs_2D = tf.tensor2d(X_2d_arr, [batch_size, timesteps]);  // this is size [ batch_size, 6 ]
@@ -143,7 +138,10 @@ async function view_fetched_data() {
 	var Y_1d_arr = [X_1d_arr.at(0)].concat(X_1d_arr.slice(0, X_1d_arr.length-1));
 	console.log('Y_1d_arr: ', Y_1d_arr);
 
-	const ys_2D = tf.tensor2d(Y_1d_arr, [batch_size, timesteps]);  // this is size [ batch_size, 6 ]
+	const Y_2d_arr = await transform_1D_to_2D_batch_size_by_timesteps(Y_1d_arr, batch_size, timesteps);
+	console.log('Y_2d_arr: ', Y_2d_arr);
+	
+	const ys_2D = tf.tensor2d(Y_2d_arr, [batch_size, timesteps]);  // this is size [ batch_size, 6 ]
 	console.log('ys_2D: ', ys_2D);  // it will output shape
 
 	// Change shape to [batch_size=?, timesteps=6, num_outputs=1]
@@ -234,7 +232,20 @@ const model = tf.model({inputs: input, outputs: output});
 	
 }
 
+// -----------------------------------------------
 	
+async function transform_1D_to_2D_batch_size_by_timesteps(X_1d_arr, batch_size, timesteps) {
+
+	var X_2d_arr = [];
+	for (var i=0; i<batch_size; i++) {
+		var start = i*timesteps;
+		console.log('start: ', start);
+		var stop = start + timesteps;
+		console.log('stop: ', stop);
+		X_2d_arr.push(X_1d_arr.slice(start, stop));
+	}
+	return X_2d_arr;
+}
 
 // -----------------------------------------------
 	
