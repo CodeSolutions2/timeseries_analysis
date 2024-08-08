@@ -120,14 +120,14 @@ async function view_fetched_data() {
 	console.log('batch_size: ', batch_size);
 	
 	const X_2d_arr = await transform_1D_to_2D_batch_size_by_timesteps(X_1d_arr, batch_size, timesteps);
-	console.log('X_2d_arr: ', X_2d_arr);
+	// console.log('X_2d_arr: ', X_2d_arr);
 
 	const xs_2D = tf.tensor2d(X_2d_arr, [batch_size, timesteps]);  // this is size [ batch_size, 6 ]
-	console.log('xs_2D: ', xs_2D);  // it will output shape
-
+	// console.log('xs_2D: ', xs_2D); 
+	
 	// Change shape to [batch_size=?, timesteps=6, num_of_features=1]
 	const xs_3D = xs_2D.expandDims(2);
-	console.log('xs_3D: ', xs_3D);
+	// console.log('xs_3D: ', xs_3D);
 
 	
 	
@@ -139,14 +139,14 @@ async function view_fetched_data() {
 	console.log('Y_1d_arr: ', Y_1d_arr);
 
 	const Y_2d_arr = await transform_1D_to_2D_batch_size_by_timesteps(Y_1d_arr, batch_size, timesteps);
-	console.log('Y_2d_arr: ', Y_2d_arr);
+	// console.log('Y_2d_arr: ', Y_2d_arr);
 	
 	const ys_2D = tf.tensor2d(Y_2d_arr, [batch_size, timesteps]);  // this is size [ batch_size, 6 ]
-	console.log('ys_2D: ', ys_2D);  // it will output shape
-
+	// console.log('ys_2D: ', ys_2D);  // shape: Array [ 8, 6 ]
+	
 	// Change shape to [batch_size=?, timesteps=6, num_outputs=1]
 	const ys_3D = ys_2D.expandDims(2);
-	console.log('ys_3D: ', ys_3D);
+	// console.log('ys_3D: ', ys_3D); // shape: Array(3) [ 8, 6, 1 ]
 
 	
 	// let ys = tf.tensor2d(Yencoded, [rownum, 1], 'int32').flatten();  // flatten the 2D tensor as a 1Dtensor
@@ -164,9 +164,8 @@ async function view_fetched_data() {
 	var model_type = document.getElementById("model_type").value;
 
 	if (model_type == 'LSTM') {
-		document.getElementById('notification').innerHTML = "model_type In progress.";
+		// document.getElementById('notification').innerHTML = "model_type In progress.";
 
-		
 		var num_of_features_OR_colnum = 1;
 		var n_a = 8; // LSTMCell's number of units
 		
@@ -187,8 +186,19 @@ async function view_fetched_data() {
 		// const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
 		// const denseLayer1 = tf.layers.dense({units: num_of_classes, activation: 'softmax'});
 		// const output = (denseLayer1.apply(input));
+		
+		const model = tf.model({inputs: input, outputs: output});
 
-const model = tf.model({inputs: input, outputs: output});
+		await model.compile({optimizer: 'adam', loss: 'meanSquaredError', metrics: ["meanAbsoluteError"]})
+			.then(async function() { 
+			// console.log('dict_obj.xs: ', dict_obj.xs); // Array [34, 4]
+			// console.log('dict_obj.ys: ', dict_obj.ys); // Array [34, 5]
+			const history = await model.fit(xs_3D, ys_3D, { batchSize: 1, epochs: 10, callbacks: { onEpochEnd: async (epoch, logs) => { 
+			console.log(epoch + ', loss: ' + logs.loss + ', accuracy: ' + logs.acc); 
+			} } });
+			// console.log('history: ', history);
+		})
+		.then(async function(history) { const saveResults = await model.save('localstorage://model');  });
 		
 	} else if (model_type == 'Forecasting') {
 		document.getElementById('notification').innerHTML = "model_type In progress.";
@@ -239,9 +249,9 @@ async function transform_1D_to_2D_batch_size_by_timesteps(X_1d_arr, batch_size, 
 	var X_2d_arr = [];
 	for (var i=0; i<batch_size; i++) {
 		var start = i*timesteps;
-		console.log('start: ', start);
+		// console.log('start: ', start);
 		var stop = start + timesteps;
-		console.log('stop: ', stop);
+		// console.log('stop: ', stop);
 		X_2d_arr.push(X_1d_arr.slice(start, stop));
 	}
 	return X_2d_arr;
