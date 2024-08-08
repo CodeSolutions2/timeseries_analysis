@@ -191,12 +191,10 @@ async function view_fetched_data() {
 
 		await model.compile({optimizer: 'adam', loss: 'meanSquaredError', metrics: ["meanSquaredError"]})
 			.then(async function() { 
-			// console.log('dict_obj.xs: ', dict_obj.xs); // Array [34, 4]
-			// console.log('dict_obj.ys: ', dict_obj.ys); // Array [34, 5]
 			const history = await model.fit(xs_3D, ys_3D, { batchSize: 1, epochs: 10, callbacks: { onEpochEnd: async (epoch, logs) => { 
 			console.log(epoch + ', loss: ' + logs.loss + ', accuracy: ' + logs.acc); 
 			} } });
-			// console.log('history: ', history);
+			console.log('history: ', history);
 		})
 		.then(async function(history) { const saveResults = await model.save('localstorage://model');  });
 		
