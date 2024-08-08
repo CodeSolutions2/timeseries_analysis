@@ -189,7 +189,7 @@ async function view_fetched_data() {
 		
 		const model = tf.model({inputs: input, outputs: output});
 
-		await model.compile({optimizer: 'adam', loss: 'meanSquaredError', metrics: ["meanSquaredError"]})
+		await model.compile({optimizer: 'adam', loss: 'meanSquaredError', metrics: ["mae"]})
 			.then(async function() { 
 			const history = await model.fit(xs_3D, ys_3D, { batchSize: 1, epochs: 10, callbacks: { onEpochEnd: async (epoch, logs) => { 
 			console.log(epoch + ', loss: ' + logs.loss + ', accuracy: ' + logs.acc); 
