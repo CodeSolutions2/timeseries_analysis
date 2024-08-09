@@ -261,6 +261,7 @@ async function build_lstmModel(timesteps, num_of_features_OR_colnum, data_point_
 		// The output will be [all prediction per timesteps], which is 6 prediction per 6 data points, to give a prediction for [every hour] per 24 hours; returnSequences=true allows one prediction per data point.
 		const output = lstm.apply(input);
 		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
+		return await tf.model({inputs: input, outputs: output});
 
 	} else if (case_num == 1) {
 		// Case 1: one data point prediction at the end of the timestep per batch (most basic model)
@@ -269,6 +270,7 @@ async function build_lstmModel(timesteps, num_of_features_OR_colnum, data_point_
 		// The output will be [one prediction per timesteps], which is 1 prediction per 6 data points, to give a prediction for [morning, noon, afternoon, night] per 24 hours; returnSequences=false allows one prediction per timesteps.
 		const output = lstm.apply(input);
 		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
+		return await tf.model({inputs: input, outputs: output});
 
 	} else if (case_num == 2) {
 		// Case 2: Forecasting - predictions for all the data points in the timestep per batch, but limit prediction output number from 2 to timesteps-1
@@ -280,6 +282,7 @@ async function build_lstmModel(timesteps, num_of_features_OR_colnum, data_point_
 		const denseLayer1 = tf.layers.dense({units: num_of_outputs, activation: 'linear'});
 		const output = denseLayer1.apply(dropout.apply(lstm.apply(input)));
 		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
+		return await tf.model({inputs: input, outputs: output});
 	
 	} else if (case_num == 3) {
 		// Case 3: Classification prediction of timeseries class - one data point prediction at the end of the timestep per batch
@@ -289,9 +292,8 @@ async function build_lstmModel(timesteps, num_of_features_OR_colnum, data_point_
 		const denseLayer1 = tf.layers.dense({units: num_of_classes, activation: 'softmax'});
 		const output = denseLayer1.apply(lstm.apply(input));
 		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
+		return await tf.model({inputs: input, outputs: output});
 	}
-	
-	return await tf.model({inputs: input, outputs: output});
 }
 
 // -----------------------------------------------
