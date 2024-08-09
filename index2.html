@@ -122,20 +122,22 @@ async function view_fetched_data() {
 	const X_2d_arr = await transform_1D_to_2D_batch_size_by_timesteps(X_1d_arr, batch_size, timesteps);
 	// console.log('X_2d_arr: ', X_2d_arr);
 
-	const xs_2D = tf.tensor2d(X_2d_arr, [batch_size, timesteps]);  // this is size [ batch_size, 6 ]
+	const xs_2D = tf.tensor2d(X_2d_arr, [batch_size, timesteps]);  // size [ batch_size, 6 ]
 	// console.log('xs_2D: ', xs_2D); 
 	
-	// Change shape to [batch_size=?, timesteps=6, num_of_features=1]
+	// Change shape to [batch_size=?, timesteps=6, num_of_features_OR_colnum=1]
+	var num_of_features_OR_colnum = 1;
+	
 	const xs_3D = xs_2D.expandDims(2);
 	// console.log('xs_3D: ', xs_3D);
-
 	
-	
-
 	// -------------------------------------------------
 
 	// Since we want y to be a continuous value like in regression, and not a discrete value like in classification, let y be the point after each x. Shift x to the right by one data point.
-	var Y_1d_arr = [X_1d_arr.at(0)].concat(X_1d_arr.slice(0, X_1d_arr.length-1));
+
+	const data_point_shift_between_X_and_Y = 1; // number of time points to forecast/predict
+	
+	var Y_1d_arr = await create_Y_by_timeShifting_X(X_1d_arr, data_point_shift_between_X_and_Y);
 	console.log('Y_1d_arr: ', Y_1d_arr);
 
 	const Y_2d_arr = await transform_1D_to_2D_batch_size_by_timesteps(Y_1d_arr, batch_size, timesteps);
@@ -166,32 +168,11 @@ async function view_fetched_data() {
 	if (model_type == 'LSTM') {
 		// document.getElementById('notification').innerHTML = "model_type In progress.";
 
-		var num_of_features_OR_colnum = 1;
-		var n_a = 8; // LSTMCell's number of units
-		
+		await build_lstmModel(timesteps, num_of_features_OR_colnum, data_point_shift_between_X_and_Y);
 
-		// Prediction of timeseries
-		// returnSequences: true = prediction at each data point, false = prediction at each timestep (uses all the timestep data to make one prediction)
-		// returnState: true = return the a and c matricies, false = do not return the a and c matricies
-		const lstm = tf.layers.lstm({units: n_a, returnSequences: true, kernelInitializer: 'heNormal'});
-		const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
-		const output = lstm.apply(input);
-		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
-
-		// OR
-		
-		// Prediction of timeseries class
-		// var num_of_classes = 1; 
-		// const lstm = tf.layers.lstm({units: n_a, returnSequences: false});
-		// const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
-		// const denseLayer1 = tf.layers.dense({units: num_of_classes, activation: 'softmax'});
-		// const output = (denseLayer1.apply(input));
-		
-		const model = tf.model({inputs: input, outputs: output});
-
-		await model.compile({optimizer: tf.train.adam(), loss: tf.losses.meanSquaredError, metrics: ['mse'],})
+		await lstmModel.compile({optimizer: tf.train.adam(), loss: tf.losses.meanSquaredError, metrics: ['mse'],})
 			.then(async function() { 
-			const history = await model.fit(xs_3D, ys_3D, { batchSize: batch_size, epochs: 10, callbacks: { onEpochEnd: async (epoch, logs) => { 
+			const history = await lstmModel.fit(xs_3D, ys_3D, { batchSize: batch_size, epochs: 10, callbacks: { onEpochEnd: async (epoch, logs) => { 
 			console.log('epoch: ', epoch); console.log('logs: ', logs); 
 			} } });
 			console.log('history: ', history);
@@ -238,6 +219,73 @@ async function view_fetched_data() {
 
 	// -----------------------------------------------
 	
+}
+
+// -----------------------------------------------
+
+async function create_Y_by_timeShifting_X(X, data_point_shift_between_X_and_Y) {
+	return [X.slice(X.length-data_point_shift_between_X_and_Y, X.length)].concat(X.slice(0, X.length-data_point_shift_between_X_and_Y));
+}
+	
+// -----------------------------------------------
+
+async function build_lstmModel(timesteps, num_of_features_OR_colnum, data_point_shift_between_X_and_Y) {
+
+	// returnSequences: true = prediction at each data point, false = prediction at each timestep (uses all the timestep data to make one prediction)
+	// returnState: true = return the a and c matricies, false = do not return the a and c matricies
+	
+	var n_a = 8; // LSTMCell's number of units or hidden dimension size of the matrices (ie: a, c) used to compute the output
+	
+	// All predictions are per batch=batch_size. The amount of data points that one wants to use to obtain a prediction is called a timestep. The number of timesteps selected, dictates how many batches=batch_size that one needs to perform; data length divided by timesteps equals batch_size.
+
+	// When one selects the timestep, LSTM automatically gives predictions for two cases only: 0. predictions for all the data points in the timestep per batch, or 1. one data point prediction at the end of the timestep per batch. 
+
+	// To get more variety of prediction output number, I guess one could add a dense layer to change the number of outputs from 2 to timesteps-1 to capture the [data point shift between the X and Y data vectors].
+
+	// The shift between the X and Y data vectors is how many data points one wants to predict into the future.
+
+	const case_num = 1;
+	
+	if (case_num == 0) {
+		// Case 0: predictions for all the data points in the timestep per batch (most basic model)
+		const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
+		const lstm = tf.layers.lstm({units: n_a, returnSequences: true, returnState: false, kernelInitializer: 'heNormal'});
+		// The output will be [all prediction per timesteps], which is 6 prediction per 6 data points, to give a prediction for [every hour] per 24 hours; returnSequences=true allows one prediction per data point.
+		const output = lstm.apply(input);
+
+	} else if (case_num == 1) {
+		// Case 1: one data point prediction at the end of the timestep per batch (most basic model)
+		const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
+		const lstm = tf.layers.lstm({units: n_a, returnSequences: false, returnState: false, kernelInitializer: 'heNormal'});
+		// The output will be [one prediction per timesteps], which is 1 prediction per 6 data points, to give a prediction for [morning, noon, afternoon, night] per 24 hours; returnSequences=false allows one prediction per timesteps.
+		const output = lstm.apply(input);
+
+	} else if (case_num == 2) {
+		// Case 2: Forecasting - predictions for all the data points in the timestep per batch, but limit prediction output number from 2 to timesteps-1
+		const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
+		const lstm = tf.layers.lstm({units: n_a, returnSequences: true, returnState: false, kernelInitializer: 'heNormal'});
+		const dropout = tf.layers.dropout({rate: 0.2});
+		// If returnSequences = true, there will be [one prediction per data point every batch] so one could reduce the number of 'regression-like' outputs to a number from 2 to timesteps-1.  If one wanted 1 output only, set returnSequences = false to obtain one prediction per timestep.
+		var num_of_outputs = data_point_shift_between_X_and_Y; // a value from 2 to timesteps-1, or the number of data points to predict into the future
+		const denseLayer1 = tf.layers.dense({units: num_of_outputs, activation: 'linear'});
+		const output = denseLayer1.apply(dropout.apply(lstm.apply(input)));
+	
+	} else if (case_num == 3) {
+		// Case 3: Classification prediction of timeseries class - one data point prediction at the end of the timestep per batch
+		var num_of_classes = 2;  // 2 or more
+		const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
+		const lstm = tf.layers.lstm({units: n_a, returnSequences: false});
+		const denseLayer1 = tf.layers.dense({units: num_of_classes, activation: 'softmax'});
+		const output = denseLayer1.apply(lstm.apply(input));
+	}
+
+	// -------------------------------------------------
+	
+	console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
+
+	// -------------------------------------------------
+	
+	return await tf.model({inputs: input, outputs: output});
 }
 
 // -----------------------------------------------
