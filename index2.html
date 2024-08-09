@@ -168,10 +168,12 @@ async function view_fetched_data() {
 	if (model_type == 'LSTM') {
 		// document.getElementById('notification').innerHTML = "model_type In progress.";
 
-		const lstmModel = await build_lstmModel(timesteps, num_of_features_OR_colnum, data_point_shift_between_X_and_Y);
-
-		await lstmModel.compile({optimizer: tf.train.adam(), loss: tf.losses.meanSquaredError, metrics: ['mse'],})
-			.then(async function() { 
+		await build_lstmModel(timesteps, num_of_features_OR_colnum, data_point_shift_between_X_and_Y)
+			.then(async function(lstmModel) {
+				await lstmModel.compile({optimizer: tf.train.adam(), loss: tf.losses.meanSquaredError, metrics: ['mse'],});
+				return lstmModel;
+			})
+			.then(async function(lstmModel) { 
 				const history = await lstmModel.fit(xs_3D, ys_3D, { 
 					batchSize: batch_size, 
 					epochs: 10, 
@@ -181,9 +183,11 @@ async function view_fetched_data() {
 						   } 
 				});
 				console.log('history: ', history);
+				return lstmModel;
 			})
-			.then(async function(history) { 
-				const saveResults = await model.save('localstorage://lstmModel');  
+			.then(async function(lstmModel) { 
+				const saveResults = await lstmModel.save('localstorage://lstmModel');
+				console.log('saveResults: ', saveResults);
 			})
 			.catch(error => console.error("error: ", error));
 		
