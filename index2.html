@@ -232,7 +232,7 @@ async function view_fetched_data() {
 // -----------------------------------------------
 
 async function create_Y_by_timeShifting_X(X, data_point_shift_between_X_and_Y) {
-	return [X.slice(X.length-data_point_shift_between_X_and_Y, X.length)].concat(X.slice(0, X.length-data_point_shift_between_X_and_Y));
+	return X.slice(X.length-data_point_shift_between_X_and_Y, X.length).concat(X.slice(0, X.length-data_point_shift_between_X_and_Y));
 }
 	
 // -----------------------------------------------
