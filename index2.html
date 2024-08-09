@@ -113,13 +113,16 @@ async function view_fetched_data() {
 	// Prepare the X matrix
 
 	// open_meteo_past_data:
-	// var X_1d_arr = array_object[0].temperature_2m;
-	var X_1d_arr = [array_object[0].temperature_2m, array_object[0].temperature_2m];
+	var X_1d_arr = [array_object[0].temperature_2m];  // stack in other features as [feature0, feature1, ...]
 	console.log('X_1d_arr: ', X_1d_arr);
 
 	var timesteps = 6;
-	// var num_of_features = X_1d_arr.;
-	var batch_size = Math.floor(X_1d_arr.length / timesteps);
+	console.log('timesteps: ', timesteps);
+	
+	var num_of_features = X_1d_arr.length;
+	console.log('num_of_features: ', num_of_features);
+	
+	var batch_size = Math.floor(X_1d_arr[0].length / timesteps);
 	console.log('batch_size: ', batch_size);
 
 	// Way 0: focus on batch_size and fold the data with respect timesteps => [batch_size, timesteps]
@@ -128,7 +131,21 @@ async function view_fetched_data() {
 	// console.log('X_2d_arr: ', X_2d_arr);
 
 	// Way 1: First focus on folding the data by [num_of_features, timesteps], then stack up these 2D arrays per batch_size
-	
+	// "Create an input with [timesteps] time steps and a length-[num_of_features] vector at each step.". 
+	// So it means that [num_of_features] are the rows, and [timesteps] are the columns
+	var c = 0;
+	var x_batchSize_by_feat_by_timesteps = [];
+	for (var i=0; i<num_of_features; i++) {
+		var x_feat_by_timesteps = [];
+		for (var j=0; j<timesteps; j++) {
+			if (X_1d_arr.length > c) {
+				x_feat_by_timesteps.push([X_1d_arr.at(c)]);
+				c = c + 1;
+			}
+		}
+		x_batchSize_by_feat_by_timesteps.push(x_feat_by_timesteps);
+	}
+	console.log('x_batchSize_by_feat_by_timesteps: ', x_batchSize_by_feat_by_timesteps);
 
 	// Shape [batch_size, timesteps]
 	const xs_2D = tf.tensor2d(X_2d_arr, [batch_size, timesteps]);
