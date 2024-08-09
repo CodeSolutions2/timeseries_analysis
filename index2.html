@@ -123,20 +123,27 @@ async function view_fetched_data() {
 	const X_2d_arr = await transform_1D_to_2D_batch_size_by_timesteps(X_1d_arr, batch_size, timesteps);
 	// console.log('X_2d_arr: ', X_2d_arr);
 
-	const xs_2D = tf.tensor2d(X_2d_arr, [batch_size, timesteps]);  // size [ batch_size, 6 ]
-	console.log('xs_2D: ', xs_2D); 
-	
-	// Change shape to [batch_size=?, timesteps=6, num_of_features_OR_colnum=1]
+	// Shape [batch_size, timesteps]
+	const xs_2D = tf.tensor2d(X_2d_arr, [batch_size, timesteps]);
+	console.log('xs_2D: ', xs_2D);
+
+	// Shape [batch_size, timesteps, num_of_features_OR_colnum]
 	var num_of_features_OR_colnum = 1;
-	
 	const xs_3D = xs_2D.expandDims(2);
-	console.log('xs_3D: ', xs_3D);
+	console.log('xs_3D: ', xs_3D); // shape: Array(3) [ 8, 6, 1 ]
+
+	// Required shape to input into LSTM [timesteps, num_of_features_OR_colnum] OR [timesteps, num_of_features_OR_colnum, batch_size]
+	// The shape of the input (not including the first, batch dimension) needs to be at least 2-D, with the first dimension being time steps.
+	
 	
 	// -------------------------------------------------
 
-	// Since we want y to be a continuous value like in regression, and not a discrete value like in classification, let y be the point after each x. Shift x to the right by one data point.
+	// Prepare the Y matrix
+	
+	// Since we want y to be a continuous value like in regression, and not a discrete value like in classification, let y be the point after each x. Shift x to the right by one or more data points.
 
-	const data_point_shift_between_X_and_Y = 1; // number of time points to forecast/predict
+	// Number of data points selected to forecast/predict
+	const data_point_shift_between_X_and_Y = 1; 
 	
 	var Y_1d_arr = await create_Y_by_timeShifting_X(X_1d_arr, data_point_shift_between_X_and_Y);
 	console.log('Y_1d_arr: ', Y_1d_arr);
@@ -144,21 +151,17 @@ async function view_fetched_data() {
 	const Y_2d_arr = await transform_1D_to_2D_batch_size_by_timesteps(Y_1d_arr, batch_size, timesteps);
 	// console.log('Y_2d_arr: ', Y_2d_arr);
 	
-	const ys_2D = tf.tensor2d(Y_2d_arr, [batch_size, timesteps]);  // this is size [ batch_size, 6 ]
-	console.log('ys_2D: ', ys_2D);  // shape: Array [ 8, 6 ]
-	
-	// Change shape to [batch_size=?, timesteps=6, num_outputs=1]
+	// Shape [batch_size, timesteps]
+	const ys_2D = tf.tensor2d(Y_2d_arr, [batch_size, timesteps]);
+	console.log('ys_2D: ', ys_2D);
+
+	// Shape [batch_size, timesteps, num_outputs_OR_features]
 	const ys_3D = ys_2D.expandDims(2);
 	console.log('ys_3D: ', ys_3D); // shape: Array(3) [ 8, 6, 1 ]
 
+	// Required shape to input into LSTM [timesteps, num_outputs_OR_features] OR [timesteps, num_outputs_OR_features, batch_size]
+	// The shape of the input (not including the first, batch dimension) needs to be at least 2-D, with the first dimension being time steps.
 	
-	// let ys = tf.tensor2d(Yencoded, [rownum, 1], 'int32').flatten();  // flatten the 2D tensor as a 1Dtensor
-	// console.log('ys: ', ys);  // shape: Array [ 34 ]
-	
-	// ys needs to be in one-hot form, size [34, 5]
-	// ys = tf.oneHot(ys, num_of_classes);  // Array [34, 5]
-	// console.log('ys: ', ys);
-
 	// -------------------------------------------------
 	
 	// -----------------------------------------------
