@@ -113,7 +113,8 @@ async function view_fetched_data() {
 	// Prepare the X matrix
 
 	// open_meteo_past_data:
-	var X_1d_arr = array_object[0].temperature_2m; // 48 long
+	var X_1d_arr = array_object[0].temperature_2m;
+	console.log('X_1d_arr: ', X_1d_arr);
 
 	var timesteps = 6;
 	var batch_size = Math.floor(X_1d_arr.length / timesteps);
@@ -123,13 +124,13 @@ async function view_fetched_data() {
 	// console.log('X_2d_arr: ', X_2d_arr);
 
 	const xs_2D = tf.tensor2d(X_2d_arr, [batch_size, timesteps]);  // size [ batch_size, 6 ]
-	// console.log('xs_2D: ', xs_2D); 
+	console.log('xs_2D: ', xs_2D); 
 	
 	// Change shape to [batch_size=?, timesteps=6, num_of_features_OR_colnum=1]
 	var num_of_features_OR_colnum = 1;
 	
 	const xs_3D = xs_2D.expandDims(2);
-	// console.log('xs_3D: ', xs_3D);
+	console.log('xs_3D: ', xs_3D);
 	
 	// -------------------------------------------------
 
@@ -144,11 +145,11 @@ async function view_fetched_data() {
 	// console.log('Y_2d_arr: ', Y_2d_arr);
 	
 	const ys_2D = tf.tensor2d(Y_2d_arr, [batch_size, timesteps]);  // this is size [ batch_size, 6 ]
-	// console.log('ys_2D: ', ys_2D);  // shape: Array [ 8, 6 ]
+	console.log('ys_2D: ', ys_2D);  // shape: Array [ 8, 6 ]
 	
 	// Change shape to [batch_size=?, timesteps=6, num_outputs=1]
 	const ys_3D = ys_2D.expandDims(2);
-	// console.log('ys_3D: ', ys_3D); // shape: Array(3) [ 8, 6, 1 ]
+	console.log('ys_3D: ', ys_3D); // shape: Array(3) [ 8, 6, 1 ]
 
 	
 	// let ys = tf.tensor2d(Yencoded, [rownum, 1], 'int32').flatten();  // flatten the 2D tensor as a 1Dtensor
@@ -168,7 +169,7 @@ async function view_fetched_data() {
 	if (model_type == 'LSTM') {
 		// document.getElementById('notification').innerHTML = "model_type In progress.";
 
-		await build_lstmModel(timesteps, num_of_features_OR_colnum, data_point_shift_between_X_and_Y)
+		await build_lstmModel(batch_size, timesteps, num_of_features_OR_colnum, data_point_shift_between_X_and_Y)
 			.then(async function(lstmModel) {
 				await lstmModel.compile({optimizer: tf.train.adam(), loss: tf.losses.meanSquaredError, metrics: ['mse'],});
 				return lstmModel;
@@ -241,7 +242,7 @@ async function create_Y_by_timeShifting_X(X, data_point_shift_between_X_and_Y) {
 	
 // -----------------------------------------------
 
-async function build_lstmModel(timesteps, num_of_features_OR_colnum, data_point_shift_between_X_and_Y) {
+async function build_lstmModel(batch_size, timesteps, num_of_features_OR_colnum, data_point_shift_between_X_and_Y) {
 
 	// returnSequences: true = prediction at each data point, false = prediction at each timestep (uses all the timestep data to make one prediction)
 	// returnState: true = return the a and c matricies, false = do not return the a and c matricies
@@ -257,10 +258,11 @@ async function build_lstmModel(timesteps, num_of_features_OR_colnum, data_point_
 	// The shift between the X and Y data vectors is how many data points one wants to predict into the future.
 
 	const case_num = 1;
+	const input = tf.input({shape: [batch_size, timesteps, num_of_features_OR_colnum]});
 	
 	if (case_num == 0) {
 		// Case 0: predictions for all the data points in the timestep per batch (most basic model)
-		const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
+		// const input = tf.input({shape: [batch_size, timesteps, num_of_features_OR_colnum]});
 		const lstm = tf.layers.lstm({units: n_a, returnSequences: true, returnState: false, kernelInitializer: 'heNormal'});
 		// The output will be [all prediction per timesteps], which is 6 prediction per 6 data points, to give a prediction for [every hour] per 24 hours; returnSequences=true allows one prediction per data point.
 		const output = lstm.apply(input);
@@ -269,7 +271,7 @@ async function build_lstmModel(timesteps, num_of_features_OR_colnum, data_point_
 
 	} else if (case_num == 1) {
 		// Case 1: one data point prediction at the end of the timestep per batch (most basic model)
-		const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
+		// const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
 		const lstm = tf.layers.lstm({units: n_a, returnSequences: false, returnState: false, kernelInitializer: 'heNormal'});
 		// The output will be [one prediction per timesteps], which is 1 prediction per 6 data points, to give a prediction for [morning, noon, afternoon, night] per 24 hours; returnSequences=false allows one prediction per timesteps.
 		const output = lstm.apply(input);
@@ -278,7 +280,7 @@ async function build_lstmModel(timesteps, num_of_features_OR_colnum, data_point_
 
 	} else if (case_num == 2) {
 		// Case 2: Forecasting - predictions for all the data points in the timestep per batch, but limit prediction output number from 2 to timesteps-1
-		const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
+		// const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
 		const lstm = tf.layers.lstm({units: n_a, returnSequences: true, returnState: false, kernelInitializer: 'heNormal'});
 		const dropout = tf.layers.dropout({rate: 0.2});
 		// If returnSequences = true, there will be [one prediction per data point every batch] so one could reduce the number of 'regression-like' outputs to a number from 2 to timesteps-1.  If one wanted 1 output only, set returnSequences = false to obtain one prediction per timestep.
@@ -291,7 +293,7 @@ async function build_lstmModel(timesteps, num_of_features_OR_colnum, data_point_
 	} else if (case_num == 3) {
 		// Case 3: Classification prediction of timeseries class - one data point prediction at the end of the timestep per batch
 		var num_of_classes = 2;  // 2 or more
-		const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
+		// const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
 		const lstm = tf.layers.lstm({units: n_a, returnSequences: false});
 		const denseLayer1 = tf.layers.dense({units: num_of_classes, activation: 'softmax'});
 		const output = denseLayer1.apply(lstm.apply(input));
