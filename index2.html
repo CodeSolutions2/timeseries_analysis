@@ -139,7 +139,7 @@ async function view_fetched_data() {
 		var x_feat_by_timesteps = [];
 		for (var j=0; j<timesteps; j++) {
 			if (X_1d_arr.length > c) {
-				x_feat_by_timesteps.push([X_1d_arr.at(c)]);
+				x_feat_by_timesteps.push([X_1d_arr[i].at(c)]);
 				c = c + 1;
 			}
 		}
