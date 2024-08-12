@@ -179,13 +179,6 @@ async function view_fetched_data() {
 	if (model_type == 'LSTM') {
 		document.getElementById('notification').innerHTML = "model_type In progress.";
 
-		await build_lstmModel(batch_size, timesteps, num_of_features_OR_colnum, data_point_shift_between_X_and_Y)
-			.then(async function(lstmModel) {
-				await lstmModel.compile({optimizer: tf.train.adam(), loss: tf.losses.meanSquaredError, metrics: ['mse'],});
-				return lstmModel;
-			})
-			.catch(error => console.error("error: ", error));
-
 		
 	} else if (model_type == 'Forecasting') {
 		document.getElementById('notification').innerHTML = "model_type In progress.";
@@ -231,74 +224,10 @@ async function view_fetched_data() {
 
 // -----------------------------------------------
 
-
-
-
-	
 async function create_Y_by_timeShifting_X(X, data_point_shift_between_X_and_Y) {
 	return X.slice(X.length-data_point_shift_between_X_and_Y, X.length).concat(X.slice(0, X.length-data_point_shift_between_X_and_Y));
 }
 	
-// -----------------------------------------------
-
-async function build_lstmModel(batch_size, timesteps, num_of_features_OR_colnum, data_point_shift_between_X_and_Y) {
-
-	// returnSequences: true = prediction at each data point, false = prediction at each timestep (uses all the timestep data to make one prediction)
-	// returnState: true = return the a and c matricies, false = do not return the a and c matricies
-	
-	var n_a = 8; // LSTMCell's number of units or hidden dimension size of the matrices (ie: a, c) used to compute the output
-	
-	// All predictions are per batch=batch_size. The amount of data points that one wants to use to obtain a prediction is called a timestep. The number of timesteps selected, dictates how many batches=batch_size that one needs to perform; data length divided by timesteps equals batch_size.
-
-	// When one selects the timestep, LSTM automatically gives predictions for two cases only: 0. predictions for all the data points in the timestep per batch, or 1. one data point prediction at the end of the timestep per batch. 
-
-	// To get more variety of prediction output number, I guess one could add a dense layer to change the number of outputs from 2 to timesteps-1 to capture the [data point shift between the X and Y data vectors].
-
-	// The shift between the X and Y data vectors is how many data points one wants to predict into the future.
-
-	const case_num = 1;
-	// tf.input({shape: [batch_size, timesteps, num_of_features_OR_colnum]}) batch_size is calculated by LSTM so one does not need to write it
-	const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
-	
-	if (case_num == 0) {
-		// Case 0: predictions for all the data points in the timestep per batch (most basic model)
-		const lstm = tf.layers.lstm({units: n_a, returnSequences: true, returnState: false, kernelInitializer: 'heNormal'});
-		// The output will be [all prediction per timesteps], which is 6 prediction per 6 data points, to give a prediction for [every hour] per 24 hours; returnSequences=true allows one prediction per data point.
-		const output = lstm.apply(input);
-		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
-		return await tf.model({inputs: input, outputs: output});
-
-	} else if (case_num == 1) {
-		// Case 1: one data point prediction at the end of the timestep per batch (most basic model)
-		const lstm = tf.layers.lstm({units: n_a, returnSequences: false, returnState: false, kernelInitializer: 'heNormal'});
-		// The output will be [one prediction per timesteps], which is 1 prediction per 6 data points, to give a prediction for [morning, noon, afternoon, night] per 24 hours; returnSequences=false allows one prediction per timesteps.
-		const output = lstm.apply(input);
-		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
-		return await tf.model({inputs: input, outputs: output});
-
-	} else if (case_num == 2) {
-		// Case 2: Forecasting - predictions for all the data points in the timestep per batch, but limit prediction output number from 2 to timesteps-1
-		// const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
-		const lstm = tf.layers.lstm({units: n_a, returnSequences: true, returnState: false, kernelInitializer: 'heNormal'});
-		const dropout = tf.layers.dropout({rate: 0.2});
-		// If returnSequences = true, there will be [one prediction per data point every batch] so one could reduce the number of 'regression-like' outputs to a number from 2 to timesteps-1.  If one wanted 1 output only, set returnSequences = false to obtain one prediction per timestep.
-		var num_of_outputs = data_point_shift_between_X_and_Y; // a value from 2 to timesteps-1, or the number of data points to predict into the future
-		const denseLayer1 = tf.layers.dense({units: num_of_outputs, activation: 'linear'});
-		const output = denseLayer1.apply(dropout.apply(lstm.apply(input)));
-		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
-		return await tf.model({inputs: input, outputs: output});
-	
-	} else if (case_num == 3) {
-		// Case 3: Classification prediction of timeseries class - one data point prediction at the end of the timestep per batch
-		var num_of_classes = 2;  // 2 or more
-		const lstm = tf.layers.lstm({units: n_a, returnSequences: false});
-		const denseLayer1 = tf.layers.dense({units: num_of_classes, activation: 'softmax'});
-		const output = denseLayer1.apply(lstm.apply(input));
-		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
-		return await tf.model({inputs: input, outputs: output});
-	}
-}
-
 // -----------------------------------------------
 	
 async function transform_2d_arr_to_3d_arr_batchSize_by_timesteps_by_featureNum(X2Darr, batch_size, timesteps, featureNum) {
