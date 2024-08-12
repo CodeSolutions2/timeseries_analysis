@@ -139,7 +139,7 @@ async function view_fetched_data() {
 		for (var j=0; j<featureNum; j++) {
 			var x_timesteps = [];
 			for (var k=0; k<timesteps; k++) {
-				x_timesteps.push(X_1d_arr[j].at(k));
+				x_timesteps.push(xs_2d_arr[j].at(k));
 			}
 			x_featureNum_by_timesteps.push(x_timesteps);
 		}
