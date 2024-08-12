@@ -133,19 +133,19 @@ async function view_fetched_data() {
 	// Way 1: First focus on folding the data by [featureNum, timesteps], then stack up these 2D arrays per batch_size
 	// Tensorflow.js (tf.layers.lstmCell): "Create an input with [timesteps] time steps and a length-[featureNum] vector at each step.". 
 	// So it means that [featureNum] are the rows, and [timesteps] are the columns; this way is easy to write.
-	var x_batchSize_by_featureNum_by_timesteps = [];
-	for (var i=0; i<batch_size; i++) {
-		var x_featureNum_by_timesteps = [];
-		for (var j=0; j<featureNum; j++) {
-			var x_timesteps = [];
-			for (var k=0; k<timesteps; k++) {
-				x_timesteps.push(xs_2d_arr[j].at(k));
-			}
-			x_featureNum_by_timesteps.push(x_timesteps);
-		}
-		x_batchSize_by_featureNum_by_timesteps.push(x_featureNum_by_timesteps);
-	}
-	console.log('x_batchSize_by_featureNum_by_timesteps: ', x_batchSize_by_featureNum_by_timesteps);
+	// var x_batchSize_by_featureNum_by_timesteps = [];
+	// for (var i=0; i<batch_size; i++) {
+	// 	var x_featureNum_by_timesteps = [];
+	// 	for (var j=0; j<featureNum; j++) {
+	// 		var x_timesteps = [];
+	// 		for (var k=0; k<timesteps; k++) {
+	// 			x_timesteps.push(xs_2d_arr[j].at(k));
+	// 		}
+	// 		x_featureNum_by_timesteps.push(x_timesteps);
+	// 	}
+	// 	x_batchSize_by_featureNum_by_timesteps.push(x_featureNum_by_timesteps);
+	// }
+	// console.log('x_batchSize_by_featureNum_by_timesteps: ', x_batchSize_by_featureNum_by_timesteps);
 
 	const xs_3d_arr = await transform_2d_arr_to_3d_arr_batchSize_by_timesteps_by_featureNum(xs_2d_arr, batch_size, timesteps, featureNum);
 	console.log('xs_3d_arr: ', xs_3d_arr);
@@ -177,30 +177,15 @@ async function view_fetched_data() {
 	var model_type = document.getElementById("model_type").value;
 
 	if (model_type == 'LSTM') {
-		// document.getElementById('notification').innerHTML = "model_type In progress.";
+		document.getElementById('notification').innerHTML = "model_type In progress.";
 
 		await build_lstmModel(batch_size, timesteps, num_of_features_OR_colnum, data_point_shift_between_X_and_Y)
 			.then(async function(lstmModel) {
 				await lstmModel.compile({optimizer: tf.train.adam(), loss: tf.losses.meanSquaredError, metrics: ['mse'],});
 				return lstmModel;
 			})
-			.then(async function(lstmModel) { 
-				const history = await lstmModel.fit(xs_3d_arr, ys_3d_arr, { 
-					batchSize: batch_size, 
-					epochs: 10, 
-					callbacks: { onEpochEnd: async (epoch, logs) => { 
-						console.log('epoch: ', epoch); 
-						console.log('logs: ', logs); } 
-						   } 
-				});
-				console.log('history: ', history);
-				return lstmModel;
-			})
-			.then(async function(lstmModel) { 
-				const saveResults = await lstmModel.save('localstorage://lstmModel');
-				console.log('saveResults: ', saveResults);
-			})
 			.catch(error => console.error("error: ", error));
+
 		
 	} else if (model_type == 'Forecasting') {
 		document.getElementById('notification').innerHTML = "model_type In progress.";
@@ -338,7 +323,7 @@ async function transform_2d_arr_to_3d_arr_batchSize_by_timesteps_by_featureNum(X
 
 	// Shape [batch_size, timesteps, featureNum]
 	const xs_3D = await tf.tensor3d(x_batchSize_by_timesteps_by_featureNum, [batch_size, timesteps, featureNum]);
-	console.log('xs_3D: ', xs_3D);
+	// console.log('xs_3D: ', xs_3D);
 	
 	return xs_3D;
 }
