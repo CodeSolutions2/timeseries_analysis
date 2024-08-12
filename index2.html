@@ -113,22 +113,22 @@ async function view_fetched_data() {
 	// Prepare the X matrix
 
 	// open_meteo_past_data:
-	var X_2d_arr = [array_object[0].temperature_2m];  // stack in other features as [feature0, feature1, ...]
-	console.log('X_2d_arr: ', X_2d_arr);
+	var xs_2d_arr = [array_object[0].temperature_2m];  // stack in other features as [feature0, feature1, ...]
+	console.log('xs_2d_arr: ', xs_2d_arr);
 
 	var timesteps = 6;
 	console.log('timesteps: ', timesteps);
 	
-	var featureNum = X_1d_arr.length;  // num_of_features_OR_colnum
+	var featureNum = xs_2d_arr.length;  // num_of_features_OR_colnum
 	console.log('featureNum: ', featureNum);
 	
-	var batch_size = Math.floor(X_1d_arr[0].length / timesteps);
+	var batch_size = Math.floor(xs_2d_arr[0].length / timesteps);
 	console.log('batch_size: ', batch_size);
 
 	// Way 0: focus on batch_size and fold the data with respect timesteps => [batch_size, timesteps]
 	// Disadvantage: it assumes one feature and does not calculate for the case of more than one feature
-	// const X_2d_arr = await transform_1D_to_2D_batch_size_by_timesteps(X_1d_arr, batch_size, timesteps);
-	// console.log('X_2d_arr: ', X_2d_arr);
+	// const xs_2d_arr = await transform_1D_to_2D_batch_size_by_timesteps(X_1d_arr, batch_size, timesteps);
+	// console.log('xs_2d_arr: ', xs_2d_arr);
 
 	// Way 1: First focus on folding the data by [featureNum, timesteps], then stack up these 2D arrays per batch_size
 	// Tensorflow.js (tf.layers.lstmCell): "Create an input with [timesteps] time steps and a length-[featureNum] vector at each step.". 
@@ -147,8 +147,8 @@ async function view_fetched_data() {
 	}
 	console.log('x_batchSize_by_featureNum_by_timesteps: ', x_batchSize_by_featureNum_by_timesteps);
 
-	const xs_3D = await transform_X2Darr_to_3D_batchSize_by_timesteps_by_featureNum(X2Darr, batch_size, timesteps, featureNum);
-	
+	const xs_3d_arr = await transform_2d_arr_to_3d_arr_batchSize_by_timesteps_by_featureNum(xs_2d_arr, batch_size, timesteps, featureNum);
+	console.log('xs_3d_arr: ', xs_3d_arr);
 	
 	// -------------------------------------------------
 
@@ -159,13 +159,15 @@ async function view_fetched_data() {
 	// Number of data points selected to forecast/predict
 	const data_point_shift_between_X_and_Y = 1; 
 	
-	var Y_1d_arr = await create_Y_by_timeShifting_X(X_1d_arr, data_point_shift_between_X_and_Y);
-	console.log('Y_1d_arr: ', Y_1d_arr);
+	var ys_2d_arr = [];
+	for (var i=0; i<featureNum; i++) {
+		var ys_1d_arr_per_featureNum = await create_Y_by_timeShifting_X(xs_2d_arr.at(i), data_point_shift_between_X_and_Y);
+		ys_2d_arr.push(ys_1d_arr_per_featureNum);
+	}
+	console.log('ys_2d_arr: ', ys_2d_arr);
 
-	const Y_2d_arr = await transform_1D_to_2D_batch_size_by_timesteps(Y_1d_arr, batch_size, timesteps);
-	// console.log('Y_2d_arr: ', Y_2d_arr);
-	
-	const xs_3D = await transform_X2Darr_to_3D_batchSize_by_timesteps_by_featureNum(X2Darr, batch_size, timesteps, featureNum)
+	const ys_3d_arr = await transform_2d_arr_to_3d_arr_batchSize_by_timesteps_by_featureNum(ys_2d_arr, batch_size, timesteps, featureNum);
+	console.log('ys_3d_arr: ', ys_3d_arr);
 	
 	// -------------------------------------------------
 	
@@ -183,7 +185,7 @@ async function view_fetched_data() {
 				return lstmModel;
 			})
 			.then(async function(lstmModel) { 
-				const history = await lstmModel.fit(xs_3D, ys_3D, { 
+				const history = await lstmModel.fit(xs_3d_arr, ys_3d_arr, { 
 					batchSize: batch_size, 
 					epochs: 10, 
 					callbacks: { onEpochEnd: async (epoch, logs) => { 
@@ -244,6 +246,10 @@ async function view_fetched_data() {
 
 // -----------------------------------------------
 
+
+
+
+	
 async function create_Y_by_timeShifting_X(X, data_point_shift_between_X_and_Y) {
 	return X.slice(X.length-data_point_shift_between_X_and_Y, X.length).concat(X.slice(0, X.length-data_point_shift_between_X_and_Y));
 }
@@ -310,7 +316,7 @@ async function build_lstmModel(batch_size, timesteps, num_of_features_OR_colnum,
 
 // -----------------------------------------------
 	
-async function transform_X2Darr_to_3D_batchSize_by_timesteps_by_featureNum(X2Darr, batch_size, timesteps, featureNum) {
+async function transform_2d_arr_to_3d_arr_batchSize_by_timesteps_by_featureNum(X2Darr, batch_size, timesteps, featureNum) {
 
 	// Way 2: First focus on folding the data by [timesteps, featureNum], then stack up these 2D arrays per batch_size
 	// Tensorflow.js (tf.layers.lstm): "Create an input with [timesteps] time steps."
