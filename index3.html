@@ -217,11 +217,10 @@ async function view_fetched_data() {
 		// Without the denselayer, if returnSequences=true, output will be [batch_size, timesteps, n_a] meaning that there will be a prediction per timestep, n_a times for output a and c.
 		// Without the denselayer, if returnSequences=false, output will be [batch_size, n_a] meaning that there will be a prediction per batch_size, n_a times for output a and c.
 		
-		const lstmModel = await tf.model({inputs: input, outputs: output})
-			.then(async function(lstmModel) { 
-				console.log('lstmModel: ', lstmModel);
+		const lstmModel = await tf.model({inputs: input, outputs: output});
+		console.log('lstmModel: ', lstmModel);
 				
-				const history = await lstmModel.fit(xs_3d_arr, ys_3d_arr, { 
+		const history = await lstmModel.fit(xs_3d_arr, ys_3d_arr, { 
 					batchSize: batch_size, 
 					epochs: 10, 
 					callbacks: { onEpochEnd: async (epoch, logs) => { 
@@ -229,9 +228,8 @@ async function view_fetched_data() {
 						console.log('logs: ', logs); } 
 						   } 
 				});
-				console.log('history: ', history);
-				return lstmModel;
-			})
+		console.log('history: ', history);
+				
 	
 		
 	} else if (model_type == 'Forecasting') {
