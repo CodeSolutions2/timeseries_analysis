@@ -212,7 +212,7 @@ async function view_fetched_data() {
 		// There should be one output every timesteps=6 for each batch_size=8 
 		const denseLayer1 = tf.layers.dense({units: 1, activation: 'linear'});
 		const output = denseLayer1.apply(lstm.apply(input));
-		const output = lstm.apply(input);
+		
 		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  
 		// Without the denselayer, if returnSequences=true, output will be [batch_size, timesteps, n_a] meaning that there will be a prediction per timestep, n_a times for output a and c.
 		// Without the denselayer, if returnSequences=false, output will be [batch_size, n_a] meaning that there will be a prediction per batch_size, n_a times for output a and c.
