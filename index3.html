@@ -206,18 +206,26 @@ async function view_fetched_data() {
 
 		var n_a = timesteps;
 		const input = tf.input({shape: [timesteps, featureNum]});
+		console.log(JSON.stringify(input.shape));  // [null,6,1]
+		
 		const lstm = tf.layers.lstm({units: n_a, 
 					     returnSequences: false, 
 					     returnState: false, 
 					     kernelInitializer: 'heNormal'
 		});
-		const flattenLayer = tf.layers.flatten(); // they probably do it to reduce the dimension of the input by one
+		console.log(JSON.stringify(lstm.apply(input).shape)); // [null,6]
+		
+		// const flattenLayer = tf.layers.flatten(); // they probably do it to reduce the dimension of the input by one
 		
 		// There should be one output every timesteps=6 for each batch_size=8 
 		const denseLayer1 = tf.layers.dense({units: num_of_outputs, activation: 'linear'});
 		
-		// const output = denseLayer1.apply(lstm.apply(input));
-		const output = denseLayer1.apply(flattenLayer.apply(lstm.apply(input)));
+		const output = denseLayer1.apply(lstm.apply(input));
+		console.log(JSON.stringify(output.shape));  // [null,1]
+		
+		// OR
+		// const output = denseLayer1.apply(flattenLayer.apply(lstm.apply(input)));
+		// Error: Input 0 is incompatible with layer flatten_Flatten1: expected min_ndim=3, found ndim=2.
 		
 		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  
 		// Without the denselayer, if returnSequences=true, output will be [batch_size, timesteps, n_a] meaning that there will be a prediction per timestep, n_a times for output a and c.
