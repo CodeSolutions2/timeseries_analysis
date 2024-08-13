@@ -179,22 +179,22 @@ async function view_fetched_data() {
 	if (model_type == 'LSTM') {
 		// document.getElementById('notification').innerHTML = "model_type In progress.";
 
-		await build_lstmModel(batch_size, timesteps, num_of_features_OR_colnum, data_point_shift_between_X_and_Y)
+		var lstmModel = await build_lstmModel(batch_size, timesteps, num_of_features_OR_colnum, data_point_shift_between_X_and_Y)
 			.then(async function(lstmModel) {
-				await lstmModel.compile({optimizer: tf.train.adam(), loss: tf.losses.meanSquaredError, metrics: ['mse'],});
+			//	await lstmModel.compile({optimizer: tf.train.adam(), loss: tf.losses.meanSquaredError, metrics: ['mse'],});
 				return lstmModel;
 			})
-			.then(async function(lstmModel) { 
-				const history = await lstmModel.fit(xs_3d_arr, ys_3d_arr, { 
-					batchSize: batch_size, 
-					epochs: 10, 
-					callbacks: { onEpochEnd: async (epoch, logs) => { 
-						console.log('epoch: ', epoch); 
-						console.log('logs: ', logs); } 
-						   } 
-				});
-				console.log('history: ', history);
-				return lstmModel;
+			//.then(async function(lstmModel) { 
+			//	const history = await lstmModel.fit(xs_3d_arr, ys_3d_arr, { 
+			//		batchSize: batch_size, 
+			//		epochs: 10, 
+			//		callbacks: { onEpochEnd: async (epoch, logs) => { 
+			//			console.log('epoch: ', epoch); 
+			//			console.log('logs: ', logs); } 
+			//			   } 
+			//	});
+			//	console.log('history: ', history);
+			//	return lstmModel;
 			})
 			//.then(async function(lstmModel) { 
 			//	const saveResults = await lstmModel.save('localstorage://lstmModel');
@@ -202,6 +202,8 @@ async function view_fetched_data() {
 			//})
 			.catch(error => console.error("error: ", error));
 
+		console.log('lstmModel: ', lstmModel);
+	
 		
 	} else if (model_type == 'Forecasting') {
 		document.getElementById('notification').innerHTML = "model_type In progress.";
@@ -263,6 +265,12 @@ async function build_lstmModel(batch_size, timesteps, num_of_features_OR_colnum,
 	// returnState: true = return the a and c matricies, false = do not return the a and c matricies
 	
 	var n_a = timesteps; // LSTMCell's number of units or hidden dimension size of the matrices (ie: a, c) used to compute the output
+
+	// when n_a=8 
+	// Error: Tensor must have a shape comprised of positive integers but got shape [,32].
+
+	// when n_a = 6 = timesteps
+	// Error: Tensor must have a shape comprised of positive integers but got shape [,24].
 	
 	// All predictions are per batch=batch_size. The amount of data points that one wants to use to obtain a prediction is called a timestep. The number of timesteps selected, dictates how many batches=batch_size that one needs to perform; data length divided by timesteps equals batch_size.
 
@@ -278,7 +286,12 @@ async function build_lstmModel(batch_size, timesteps, num_of_features_OR_colnum,
 	
 	if (case_num == 0) {
 		// Case 0: predictions for all the data points in the timestep per batch (most basic model)
-		const lstm = tf.layers.lstm({units: n_a, returnSequences: true, returnState: false, kernelInitializer: 'heNormal'});
+		const lstm = tf.layers.lstm({units: n_a, 
+					     returnSequences: true, 
+					     returnState: false, 
+					     kernelInitializer: 'heNormal'
+		});
+		
 		// The output will be [all prediction per timesteps], which is 6 prediction per 6 data points, to give a prediction for [every hour] per 24 hours; returnSequences=true allows one prediction per data point.
 		const output = lstm.apply(input);
 		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
@@ -286,7 +299,12 @@ async function build_lstmModel(batch_size, timesteps, num_of_features_OR_colnum,
 
 	} else if (case_num == 1) {
 		// Case 1: one data point prediction at the end of the timestep per batch (most basic model)
-		const lstm = tf.layers.lstm({units: n_a, returnSequences: false, returnState: false, kernelInitializer: 'heNormal'});
+		const lstm = tf.layers.lstm({units: n_a, 
+					     returnSequences: false, 
+					     returnState: false, 
+					     kernelInitializer: 'heNormal'
+		});
+		
 		// The output will be [one prediction per timesteps], which is 1 prediction per 6 data points, to give a prediction for [morning, noon, afternoon, night] per 24 hours; returnSequences=false allows one prediction per timesteps.
 		const output = lstm.apply(input);
 		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
