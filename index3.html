@@ -219,7 +219,9 @@ async function view_fetched_data() {
 		
 		const lstmModel = await tf.model({inputs: input, outputs: output});
 		console.log('lstmModel: ', lstmModel);
-				
+
+		await lstmModel.compile({optimizer: tf.train.adam(), loss: tf.losses.meanSquaredError, metrics: ['mse'],});
+		
 		const history = await lstmModel.fit(xs_3d_arr, ys_3d_arr, { 
 					batchSize: batch_size, 
 					epochs: 10, 
