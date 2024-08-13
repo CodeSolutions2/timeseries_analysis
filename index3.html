@@ -202,16 +202,16 @@ async function view_fetched_data() {
 			//})
 			//.catch(error => console.error("error: ", error));
 
-		var n_a = timesteps;
-		const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
-		const lstm = tf.layers.lstm({units: n_a, 
+		// var n_a = timesteps;
+		const input = tf.input({shape: [6, 1]});
+		const lstm = tf.layers.lstm({units: 6, 
 					     returnSequences: false, 
 					     returnState: false, 
 					     kernelInitializer: 'heNormal'
 		});
 		const output = lstm.apply(input);
 		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
-		const lstmModel = tf.model({inputs: input, outputs: output});
+		const lstmModel = await tf.model({inputs: input, outputs: output})
 		console.log('lstmModel: ', lstmModel);
 	
 		
