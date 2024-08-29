@@ -162,6 +162,13 @@ async function view_fetched_data() {
 			if (num_of_desired_predictions == batch_size-1) {
 				// Test data set
 				x_temp_test.push(temp_datappoints_arr.slice(st, stop-1));
+
+				// Train data set (temporary)
+				X_2d_shape0.push(temp_datappoints_arr.slice(st, stop-1));
+				Y_1d_shape0.push(temp_datappoints_arr.at(stop));
+				
+				x_temp.push(temp_datappoints_arr.slice(st, stop-1));
+				y_temp.push(temp_datappoints_arr.at(stop));
 			} else {
 				// Train data set
 				X_2d_shape0.push(temp_datappoints_arr.slice(st, stop-1));
@@ -191,7 +198,7 @@ async function view_fetched_data() {
 	timesteps = timesteps - 1;
 
 	// 1 less to account for the x_test data set, the x_test dataset is removed to test the next hourly temperature prediction
-	batch_size = batch_size - 1;
+	//batch_size = batch_size - 1;
 
 	// -------------------------------------------------
 	
