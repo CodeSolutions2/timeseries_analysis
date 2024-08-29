@@ -316,7 +316,7 @@ async function transform_2d_arr_to_3d_arr_batchSize_by_timesteps_by_featureNum(X
 
 	
 	// Shape [batch_size, timesteps, featureNum]
-	const xs_3D = await tf.tensor3d(x_batchSize_by_timesteps_by_featureNum, [batch_size, timesteps, featureNum]);
+	const xs_3D = await tf.tensor(x_batchSize_by_timesteps_by_featureNum, [batch_size, timesteps, featureNum]);
 	console.log('xs_3D: ', xs_3D);
 	
 	return xs_3D;
