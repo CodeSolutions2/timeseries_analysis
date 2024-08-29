@@ -144,6 +144,7 @@ async function view_fetched_data() {
 	var Y_1d_shape0 = [];
 	var X_2d_shape1 = [];
 	var Y_1d_shape1 = [];
+	var X_2d_test_shape1 = [];
 	
 	for (var feats=0; feats<num_of_features; feats++) {
 		// for the organization, features are rows
@@ -152,23 +153,28 @@ async function view_fetched_data() {
 		// cut temp_datappoints_arr into X and Y, every timesteps
 		var x_temp = [];
 		var y_temp = [];
+		var x_temp_test = [];
+		
 		for (var num_of_desired_predictions=0; num_of_desired_predictions<batch_size; num_of_desired_predictions++) {
 			var st = num_of_desired_predictions * timesteps;
 			var stop = st + timesteps;
-
-			// Ensure that no values are undefined
-			while(temp_datappoints_arr.at(stop) == undefined) {
-				stop = stop-1;
-			}
-
-			X_2d_shape0.push(temp_datappoints_arr.slice(st, stop-1));
-			Y_1d_shape0.push(temp_datappoints_arr.at(stop));
 			
-			x_temp.push(temp_datappoints_arr.slice(st, stop-1));
-			y_temp.push(temp_datappoints_arr.at(stop));
+			if (num_of_desired_predictions == batch_size-1) {
+				// Test data set
+				x_temp_test.push(temp_datappoints_arr.slice(st, stop-1));
+			} else {
+				// Train data set
+				X_2d_shape0.push(temp_datappoints_arr.slice(st, stop-1));
+				Y_1d_shape0.push(temp_datappoints_arr.at(stop));
+				
+				x_temp.push(temp_datappoints_arr.slice(st, stop-1));
+				y_temp.push(temp_datappoints_arr.at(stop));
+			}
 		}
 		X_2d_shape1.push(x_temp);
 		Y_1d_shape1.push(y_temp);
+
+		X_2d_test_shape1.push(x_temp_test);
 	}
 	
 	// shape0: On blog, they made X [batch_size*num_of_features, timesteps]
@@ -207,6 +213,12 @@ async function view_fetched_data() {
 	// }
 	console.log('xs_3d_arr: ', xs_3d_arr);
 	
+	// -------------------------------------------------
+
+	const x2d_test = tf.tensor(X_2d_test_shape1);
+	const xs_test_3d_arr0 = tf.reshape (x2d_test, [num_of_features, batch_size, timesteps]);
+	const xs_test_3d_arr = tf.reshape (xs_test_3d_arr0, [batch_size, timesteps, num_of_features]);
+
 	// -------------------------------------------------
 
 	// Assign X to a 2D tensor
@@ -263,6 +275,10 @@ async function view_fetched_data() {
 				});
 		console.log('history: ', history);
 
+		// Evaluation of prediction with respect to the model
+		const result = lstmModel.predict( xs_test_3d_arr );
+		console.log('result : ', result);
+
 		// ------------------------
 		
 	} else if (model_type == 'Forecasting') {
@@ -303,11 +319,13 @@ async function view_fetched_data() {
 
 	// -----------------------------------------------
 	
-	// Evaluation of prediction with respect to existing prediction
+	
+	
+	// -----------------------------------------------
 
-
-	// print predictions
-	var predictions = [array_object[1].temperature_2m];
+	// Print the [first datapoint of] 24 hour predictions from the site
+	var predictions = array_object[1].temperature_2m.at(0);
+	document.getElementById('notification').innerHTML = "Site prediction: " + predictions;
 	
 	// -----------------------------------------------
 	
