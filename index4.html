@@ -138,8 +138,12 @@ async function view_fetched_data() {
 	
 	// -------------------------------------------------
 
-	var X_2d = [];
-	var Y_1d = [];
+	
+	var X_2d_shape0 = [];
+	var Y_1d_shape0 = [];
+	var X_2d_shape1 = [];
+	var Y_1d_shape1 = [];
+	
 	for (var feats=0; feats<num_of_features; feats++) {
 		// for the organization, features are rows
 		var temp_datappoints_arr = xs_2d_arr.at(feats);
@@ -150,28 +154,50 @@ async function view_fetched_data() {
 		for (var num_of_desired_predictions=0; num_of_desired_predictions<batch_size; num_of_desired_predictions++) {
 			var st = num_of_desired_predictions * timesteps;
 			var stop = st + timesteps;
-			X_2d.push(temp_datappoints_arr.slice(st, stop-1));
-			Y_1d.push(temp_datappoints_arr.at(stop));
-		}
-	}
-	console.log("X_2d: ", X_2d);
-	console.log("Y_1d: ", Y_1d);
 
-	// On blog, they made X [batch_size*num_of_features, timesteps]
+			X_2d_shape0.push(temp_datappoints_arr.slice(st, stop-1));
+			Y_1d_shape0.push(temp_datappoints_arr.at(stop));
+			
+			x_temp.push(temp_datappoints_arr.slice(st, stop-1));
+			y_temp.push(temp_datappoints_arr.at(stop));
+		}
+
+		// var x_temp_flat = x_temp.at(0);
+		// for (var k=1; k<x_temp.length-1; k++){
+		// 	x_temp_flat = x_temp_flat.concat(x_temp.at(k+1));
+		// }
+		X_2d_shape1.push(x_temp);
+		Y_1d_shape1.push(y_temp);
+	}
+	
+	// shape0: On blog, they made X [batch_size*num_of_features, timesteps]
+	console.log("X_2d_shape0: ", X_2d_shape0);
+	console.log("Y_1d_shape0: ", Y_1d_shape0);
+	
+	// shape1: [num_of_features, batch_size*timesteps]
+	console.log("X_2d_shape1: ", X_2d_shape1);
+	console.log("Y_1d_shape1: ", Y_1d_shape1);
 
 	// -------------------------------------------------
 
 	// Update timesteps, timesteps should be 1 less due to assigning the last datapoint to Y.
 	timesteps = timesteps - 1;
+
+	// -------------------------------------------------
 	
+	// In TensorFlow.js, when performing LSTM, the input shape should be [batch_size, time_steps, input_dim]. The input_dim refers to the number of features for each time step.
+	// xs_2d_arr should be of size [num_of_features, batch_size*timesteps]
+	const xs_3d_arr = await transform_2d_arr_to_3d_arr_batchSize_by_timesteps_by_featureNum(X_2d_shape1, batch_size, timesteps, featureNum);
+	console.log('xs_3d_arr: ', xs_3d_arr);
+
 	// -------------------------------------------------
 
 	// Assign X to a 2D tensor
-	X_2d = tf.tensor2d(X_2d);
+	// X_2d = tf.tensor2d(X_2d, [batch_size*num_of_features, timesteps]);
 	
 	// Assign Y to a 1D tensor
-	Y_1d = tf.tensor1d(Y_1d);
-	
+	const ys_1d_arr = tf.tensor1d(Y_1d_shape1);
+	console.log('ys_1d_arr: ', ys_1d_arr);
 	
 	// -----------------------------------------------
 	
@@ -209,7 +235,7 @@ async function view_fetched_data() {
 
 		// ------------------------
 		
-		const history = await lstmModel.fit(X_2d, Y_1d, { 
+		const history = await lstmModel.fit(xs_3d_arr, ys_1d_arr, { 
 					batchSize: batch_size, 
 					epochs: 10, 
 					callbacks: { onEpochEnd: async (epoch, logs) => { 
@@ -263,6 +289,36 @@ async function view_fetched_data() {
 
 	// -----------------------------------------------
 	
+}
+
+// -----------------------------------------------
+
+
+async function transform_X2Darr_to_3D_batchSize_by_timesteps_by_featureNum(X2Darr, batch_size, timesteps, featureNum) {
+
+	// Way 2: First focus on folding the data by [timesteps, featureNum], then stack up these 2D arrays per batch_size
+	// Tensorflow.js (tf.layers.lstm): "Create an input with [timesteps] time steps."
+	// const input = tf.input({shape: [timesteps, featureNum]});
+	// So it means that [timesteps] are the rows, and [featureNum] are the columns
+	var x_batchSize_by_timesteps_by_featureNum = [];
+	for (var i=0; i<batch_size; i++) {
+		var x_timesteps_by_featureNum = [];
+		for (var j=0; j<timesteps; j++) {
+			var x_featureNum = [];
+			for (var k=0; k<featureNum; k++) {
+				x_featureNum.push(X2Darr[k].at(j));
+			}
+			x_timesteps_by_featureNum.push(x_featureNum);
+		}
+		x_batchSize_by_timesteps_by_featureNum.push(x_timesteps_by_featureNum);
+	}
+	console.log('x_batchSize_by_timesteps_by_featureNum: ', x_batchSize_by_timesteps_by_featureNum);
+
+	// Shape [batch_size, timesteps, featureNum]
+	const xs_3D = await tf.tensor3d(x_batchSize_by_timesteps_by_featureNum, [batch_size, timesteps, featureNum]);
+	console.log('xs_3D: ', xs_3D);
+	
+	return xs_3D;
 }
 
 
