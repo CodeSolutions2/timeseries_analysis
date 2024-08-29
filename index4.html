@@ -187,7 +187,7 @@ async function view_fetched_data() {
 	
 	// In TensorFlow.js, when performing LSTM, the input shape should be [batch_size, time_steps, input_dim]. The input_dim refers to the number of features for each time step.
 	// xs_2d_arr should be of size [num_of_features, batch_size*timesteps]
-	const xs_3d_arr = await transform_2d_arr_to_3d_arr_batchSize_by_timesteps_by_featureNum(X_2d_shape1, batch_size, timesteps, featureNum);
+	const xs_3d_arr = await transform_2d_arr_to_3d_arr_batchSize_by_timesteps_by_featureNum(X_2d_shape1, batch_size, timesteps, num_of_features);
 	console.log('xs_3d_arr: ', xs_3d_arr);
 
 	// -------------------------------------------------
@@ -294,7 +294,7 @@ async function view_fetched_data() {
 // -----------------------------------------------
 
 
-async function transform_X2Darr_to_3D_batchSize_by_timesteps_by_featureNum(X2Darr, batch_size, timesteps, featureNum) {
+async function transform_2d_arr_to_3d_arr_batchSize_by_timesteps_by_featureNum(X2Darr, batch_size, timesteps, featureNum) {
 
 	// Way 2: First focus on folding the data by [timesteps, featureNum], then stack up these 2D arrays per batch_size
 	// Tensorflow.js (tf.layers.lstm): "Create an input with [timesteps] time steps."
