@@ -190,7 +190,7 @@ async function view_fetched_data() {
 	// X_2d_shape1 is shape [num_of_features, batch_size*timesteps]
 
 	// Quick fix
-	const x2d = tf.tensor(X_2d_shape1, [num_of_features, batch_size*timesteps]);
+	const x2d = tf.tensor(X_2d_shape1);
 	const xs_3d_arr0 = tf.reshape (x2d, [num_of_features, batch_size, timesteps]);
 	const xs_3d_arr = tf.reshape (xs_3d_arr0, [batch_size, timesteps, num_of_features]);
 	
