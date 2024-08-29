@@ -200,9 +200,9 @@ async function view_fetched_data() {
 	// X_2d_shape1 is shape [num_of_features, batch_size*timesteps]
 
 	// Quick fix
-	const x2d = tf.tensor(X_2d_shape1);
-	const xs_3d_arr0 = tf.reshape (x2d, [num_of_features, batch_size, timesteps]);
-	const xs_3d_arr = tf.reshape (xs_3d_arr0, [batch_size, timesteps, num_of_features]);
+	const x2d = await tf.tensor(X_2d_shape1);
+	const xs_3d_arr0 = await tf.reshape(x2d, [num_of_features, batch_size, timesteps]);
+	const xs_3d_arr = await tf.reshape(xs_3d_arr0, [batch_size, timesteps, num_of_features]);
 	
 	// for (var i=0; i<num_of_features; i++) {
 
@@ -218,9 +218,9 @@ async function view_fetched_data() {
 	
 	// -------------------------------------------------
 
-	const x2d_test = tf.tensor(X_2d_test_shape1);
-	const xs_test_3d_arr0 = tf.reshape (x2d_test, [num_of_features, batch_size, timesteps]);
-	const xs_test_3d_arr = tf.reshape (xs_test_3d_arr0, [batch_size, timesteps, num_of_features]);
+	const x2d_test = await tf.tensor(X_2d_test_shape1);
+	const xs_test_3d_arr0 = await tf.reshape(x2d_test, [num_of_features, batch_size, timesteps]);
+	const xs_test_3d_arr = await tf.reshape(xs_test_3d_arr0, [batch_size, timesteps, num_of_features]);
 
 	// -------------------------------------------------
 
@@ -228,8 +228,8 @@ async function view_fetched_data() {
 	// X_2d = tf.tensor2d(X_2d, [batch_size*num_of_features, timesteps]);
 	
 	// Assign Y to a 1D tensor
-	const ys_1d_arr0 = tf.tensor(Y_1d_shape1);
-	const ys_1d_arr = tf.reshape (ys_1d_arr0, [Y_1d_shape1.at(0).length]);
+	const ys_1d_arr0 = await tf.tensor(Y_1d_shape1);
+	const ys_1d_arr = await tf.reshape (ys_1d_arr0, [Y_1d_shape1.at(0).length]);
 	console.log('ys_1d_arr: ', ys_1d_arr);
 	
 	// -----------------------------------------------
