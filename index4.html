@@ -190,6 +190,9 @@ async function view_fetched_data() {
 	// Update timesteps, timesteps should be 1 less due to assigning the last datapoint to Y.
 	timesteps = timesteps - 1;
 
+	// 1 less to account for the x_test data set, the x_test dataset is removed to test the next hourly temperature prediction
+	batch_size = batch_size - 1;
+
 	// -------------------------------------------------
 	
 	// Put X_2d_shape1 into shape [batch_size, timesteps, num_of_features]
