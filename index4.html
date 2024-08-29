@@ -88,18 +88,19 @@ async function view_fetched_data() {
 
 	// Obtain timeseries data
 	var timeseries_data_source = document.getElementById("timeseries_data_source").value;
-	console.log('timeseries_data_source: ', timeseries_data_source);
+	// console.log('timeseries_data_source: ', timeseries_data_source);
 
 	if (timeseries_data_source == 'Weather_prediction') {
 		var LOCATION = document.getElementById("LOCATION").value;
-		console.log('LOCATION: ', LOCATION);
+		// console.log('LOCATION: ', LOCATION);
 		
 		var Lat_lon_arr = await GET_LATITUDE_LONGITUDE(LOCATION);
 		var latitude = Lat_lon_arr.shift();
-		console.log('latitude: ', latitude);
-		console.log('longitude: ', Lat_lon_arr);
+		// console.log('latitude: ', latitude);
+		// console.log('longitude: ', Lat_lon_arr);
 		
 		var array_object = await GET_weather_timeseries_data(latitude, Lat_lon_arr);
+		console.log('array_object: ', array_object);
 		
 	} else if (timeseries_data_source == 'Custom_URL_endpoint') {
 		document.getElementById('notification').innerHTML = "In progress.";
@@ -155,17 +156,17 @@ async function view_fetched_data() {
 			var st = num_of_desired_predictions * timesteps;
 			var stop = st + timesteps;
 
+			// Ensure that no values are undefined
+			while(temp_datappoints_arr.at(stop) == undefined) {
+				stop = stop-1;
+			}
+
 			X_2d_shape0.push(temp_datappoints_arr.slice(st, stop-1));
 			Y_1d_shape0.push(temp_datappoints_arr.at(stop));
 			
 			x_temp.push(temp_datappoints_arr.slice(st, stop-1));
 			y_temp.push(temp_datappoints_arr.at(stop));
 		}
-
-		// var x_temp_flat = x_temp.at(0);
-		// for (var k=1; k<x_temp.length-1; k++){
-		// 	x_temp_flat = x_temp_flat.concat(x_temp.at(k+1));
-		// }
 		X_2d_shape1.push(x_temp);
 		Y_1d_shape1.push(y_temp);
 	}
@@ -304,6 +305,10 @@ async function view_fetched_data() {
 	
 	// Evaluation of prediction with respect to existing prediction
 
+
+	// print predictions
+	var predictions = [array_object[1].temperature_2m];
+	
 	// -----------------------------------------------
 	
 }
@@ -425,7 +430,7 @@ async function GET_weather_timeseries_data(latitude, longitude) {
 	
 	// Obtain weather [temperature] data from the past (Prediction)
 	// Return temperature every hour for the [previous 2 days OR more], such that the next day can be predicted
-	url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m&past_days=2&forecast_days=0`;
+	url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m&past_days=10&forecast_days=0`;
 	var open_meteo_past_data = await fetch_CORS(url, method, data, headers, return_type);
 	console.log('open_meteo_past_data: ', open_meteo_past_data);
 
