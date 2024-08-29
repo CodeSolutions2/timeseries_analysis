@@ -212,7 +212,8 @@ async function view_fetched_data() {
 	// X_2d = tf.tensor2d(X_2d, [batch_size*num_of_features, timesteps]);
 	
 	// Assign Y to a 1D tensor
-	const ys_1d_arr = tf.tensor1d(Y_1d_shape1);
+	const ys_1d_arr0 = tf.tensor(Y_1d_shape1);
+	const ys_1d_arr = tf.reshape (ys_1d_arr0, [Y_1d_shape1.at(0).length]);
 	console.log('ys_1d_arr: ', ys_1d_arr);
 	
 	// -----------------------------------------------
