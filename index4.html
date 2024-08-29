@@ -191,7 +191,8 @@ async function view_fetched_data() {
 
 	// Quick fix
 	const x2d = tf.tensor2d(X_2d_shape1, [num_of_features, batch_size*timesteps]);
-	const xs_3d_arr = tf.reshape (x2d, [num_of_features, batch_size, timesteps]);
+	const xs_3d_arr0 = tf.reshape (x2d, [num_of_features, batch_size, timesteps]);
+	const xs_3d_arr = tf.reshape (xs_3d_arr0, [batch_size, timesteps, num_of_features]);
 	
 	// for (var i=0; i<num_of_features; i++) {
 
