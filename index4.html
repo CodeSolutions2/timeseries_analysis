@@ -306,7 +306,7 @@ async function transform_2d_arr_to_3d_arr_batchSize_by_timesteps_by_featureNum(X
 		for (var j=0; j<timesteps; j++) {
 			var x_featureNum = [];
 			for (var k=0; k<featureNum; k++) {
-				x_featureNum.push(X2Darr[k].at(j));
+				x_featureNum.push([X2Darr[k].at(j)]);
 			}
 			x_timesteps_by_featureNum.push(x_featureNum);
 		}
