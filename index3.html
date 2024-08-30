@@ -379,7 +379,7 @@ async function recur_func(arr) {
 async function shape(arr) {
 	var out = await recur_func(arr);
 	var shap = [out[1]];
-	const c = 0; // typically work with 4D arrays or less
+	var c = 0; // typically work with 4D arrays or less
 	while (out != undefined && c < 4) {
 		out = await recur_func(out[0]);
 		shap.push(out[1]);
