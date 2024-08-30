@@ -230,24 +230,26 @@ async function view_fetched_data() {
     
       xs_3d_featNum_batchSize_timesteps.push(xs_2d_batchSize_timesteps);
     }
+    console.log("xs_3d_featNum_batchSize_timesteps : ", xs_3d_featNum_batchSize_timesteps);
 
   // OR
 
   // Transpose X_2d_shape1 [num_of_features, batch_size*timesteps]
   var transpose_arr = await transpose_2d_array(X_2d_shape1); // [batch_size*timesteps, num_of_features]
-
-  var c = 0;
-  var temp = [];
-  for (var i=0; i<batch_size*timesteps; i++) {
-    if (i % timesteps == 0 && i != 0) {
+  console.log("transpose_arr: ", transpose_arr);
+	
+  // var c = 0;
+  // var temp = [];
+ //  for (var i=0; i<batch_size*timesteps; i++) {
+  //   if (i % timesteps == 0 && i != 0) {
 
       
-    const out = X_2d_shape1.at(i);  // out is a vector of length [num_of_features]
+ //    const out = X_2d_shape1.at(i);  // out is a vector of length [num_of_features]
 
-  }
+ //  }
     
   
-	console.log('xs_3d_arr: ', xs_3d_arr);
+	// console.log('xs_3d_arr: ', xs_3d_arr);
 	
 	// -------------------------------------------------
 
@@ -352,10 +354,6 @@ async function view_fetched_data() {
 	} else {
 		document.getElementById('notification').innerHTML = "Please select a model type for timeseries prediction."; 
 	}
-
-	// -----------------------------------------------
-	
-	
 	
 	// -----------------------------------------------
 
@@ -386,13 +384,6 @@ async function transpose_2d_array(arr) {
 	}
 	return transpose_arr;
 }
-
-// -----------------------------------------------
-
-async function zeros(dim_arr) {
-
-}
-
 
 // -----------------------------------------------
 
