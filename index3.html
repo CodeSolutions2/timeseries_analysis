@@ -144,9 +144,9 @@ async function view_fetched_data() {
 	
 	var X_2d_shape0 = [];
 	var Y_1d_shape0 = [];
-	var X_2d_shape1 = [];
-	var Y_1d_shape1 = [];
-	var X_2d_test_shape1 = [];
+	var X_3d_shape1 = [];
+	var Y_2d_shape1 = [];
+	var X_3d_test_shape1 = [];
 	
 	for (var feats=0; feats<num_of_features; feats++) {
 		// for the organization, features are rows
@@ -164,13 +164,6 @@ async function view_fetched_data() {
 			if (num_of_desired_predictions == batch_size-1) {
 				// Test data set
 				x_temp_test.push(temp_datappoints_arr.slice(st, stop-1));
-
-				// Train data set (temporary)
-				X_2d_shape0.push(temp_datappoints_arr.slice(st, stop-1));
-				Y_1d_shape0.push(temp_datappoints_arr.at(stop));
-				
-				x_temp.push(temp_datappoints_arr.slice(st, stop-1));
-				y_temp.push(temp_datappoints_arr.at(stop));
 			} else {
 				// Train data set
 				X_2d_shape0.push(temp_datappoints_arr.slice(st, stop-1));
@@ -180,25 +173,31 @@ async function view_fetched_data() {
 				y_temp.push(temp_datappoints_arr.at(stop));
 			}
 		}
-		X_2d_shape1.push(x_temp);
-		Y_1d_shape1.push(y_temp);
+		X_3d_shape1.push(x_temp);
+		Y_2d_shape1.push(y_temp);
 
-		X_2d_test_shape1.push(x_temp_test);
+		X_3d_test_shape1.push(x_temp_test);
 	}
 	
-	// shape0: On blog, they made X [batch_size*num_of_features, timesteps]
+	// Train shape0
 	shap = await shape(X_2d_shape0);
-	console.log('Shape X_2d_shape0: ', shap);
+	console.log('Shape X_2d_shape0: ', shap); // [batch_size, timesteps] = [ 40, 5 ]
 
 	shap = await shape(Y_1d_shape0);
-	console.log('Shape Y_1d_shape0: ', shap);
+	console.log('Shape Y_1d_shape0: ', shap); // [ 40 ]
 	
-	// shape1: [num_of_features, batch_size*timesteps]
-	shap = await shape(X_2d_shape1);
-	console.log('Shape X_2d_shape1: ', shap);
+	// Train shape1
+	shap = await shape(X_3d_shape1);  
+	console.log('Shape X_3d_shape1: ', shap);  // [num_of_features, batch_size, timesteps] = [ 1, 40, 5 ]
 
-	shap = await shape(Y_1d_shape1);
-	console.log('Shape Y_1d_shape1: ', shap);
+	shap = await shape(Y_2d_shape1);
+	console.log('Shape Y_2d_shape1: ', shap); // [ 1, 40 ]
+
+	// -------------------------------------------------
+
+	// Test shape1
+	shap = await shape(X_3d_test_shape1);  
+	console.log('Shape X_3d_test_shape1: ', shap);  // [num_of_features, batch_size, timesteps] = [ 1, 40, 5 ]
 
 	// -------------------------------------------------
 
@@ -210,74 +209,24 @@ async function view_fetched_data() {
 
 	// -------------------------------------------------
 	
-	// Put X_2d_shape1 into shape [batch_size, timesteps, num_of_features]
+	// Put X_3d_test_shape1 [num_of_features, batch_size, timesteps] into [batch_size, timesteps, num_of_features]
 
-	// X_2d_shape1 is shape [num_of_features, batch_size*timesteps] but show as [1, num_of_features, batch_size*timesteps]
-
-	// Quick fix
+	// Way 0
 	// const x2d = await tf.tensor(X_2d_shape1);
-	// const xs_3d_arr0 = await tf.reshape(x2d, [num_of_features, batch_size, timesteps]);
-	// const xs_3d_arr = await tf.reshape(xs_3d_arr0, [batch_size, timesteps, num_of_features]);
-
-	// OR
-
-	var xs_3d_featNum_batchSize_timesteps = []; // will be shape [num_of_features, batch_size, timesteps]
-	
-	for (var i=0; i<num_of_features; i++) {
-		const out = X_2d_shape1.at(i);  // out is a vector of length [batch_size*timesteps]
-		var xs_2d_batchSize_timesteps = []; // will be shape [batch_size, timesteps]
-		var temp = [];
-
-		console.log('out.length: ', out.length);
-
-		for (var j=0; j<out.length; j++) {
-			if (j % timesteps == 0 && j != 0) {
-				xs_2d_batchSize_timesteps.push(temp);  // log 2D matrix
-				temp = [];  // reset array of length timesteps 
-			}
-			temp.push(out.at(j))
-		}
-		xs_3d_featNum_batchSize_timesteps.push(xs_2d_batchSize_timesteps);
-	}
-	
-	// console.log("xs_3d_featNum_batchSize_timesteps : ", xs_3d_featNum_batchSize_timesteps);
-
-	shap = await shape(xs_3d_featNum_batchSize_timesteps);
-	console.log('Shape xs_3d_featNum_batchSize_timesteps: ', shap);
-	
-  // OR
-
-  // Transpose X_2d_shape1 [num_of_features, batch_size*timesteps]
-  var transpose_arr = await transpose_2d_array(X_2d_shape1); // [batch_size*timesteps, num_of_features]
-  console.log("transpose_arr: ", transpose_arr);
-	
-  // var c = 0;
-  // var temp = [];
- //  for (var i=0; i<batch_size*timesteps; i++) {
-  //   if (i % timesteps == 0 && i != 0) {
-
-      
- //    const out = X_2d_shape1.at(i);  // out is a vector of length [num_of_features]
-
- //  }
-    
-  
-	// console.log('xs_3d_arr: ', xs_3d_arr);
+	const xs_3d_arr0 = await tf.reshape(X_3d_shape1, [num_of_features, batch_size, timesteps]);
+	const xs_3d_arr = await tf.reshape(xs_3d_arr0, [batch_size, timesteps, num_of_features]);
 	
 	// -------------------------------------------------
 
-	const x2d_test = await tf.tensor(X_2d_test_shape1);
-	const xs_test_3d_arr0 = await tf.reshape(x2d_test, [num_of_features, batch_size, timesteps]);
+	// const x2d_test = await tf.tensor(X_2d_test_shape1);
+	const xs_test_3d_arr0 = await tf.reshape(X_3d_test_shape1, [num_of_features, batch_size, timesteps]);
 	const xs_test_3d_arr = await tf.reshape(xs_test_3d_arr0, [batch_size, timesteps, num_of_features]);
 
 	// -------------------------------------------------
-
-	// Assign X to a 2D tensor
-	// X_2d = tf.tensor2d(X_2d, [batch_size*num_of_features, timesteps]);
 	
 	// Assign Y to a 1D tensor
-	const ys_1d_arr0 = await tf.tensor(Y_1d_shape1);
-	const ys_1d_arr = await tf.reshape (ys_1d_arr0, [Y_1d_shape1.at(0).length]);
+	const ys_1d_arr0 = await tf.tensor(Y_2d_shape1);
+	const ys_1d_arr = await tf.reshape (ys_1d_arr0, [Y_2d_shape1.at(1).length]);
 	console.log('ys_1d_arr: ', ys_1d_arr);
 	
 	// -----------------------------------------------
