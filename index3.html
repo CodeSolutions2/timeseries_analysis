@@ -208,6 +208,7 @@ async function view_fetched_data() {
 	batch_size = batch_size - 1;
 
 	// -------------------------------------------------
+
 	
 	
 	// -----------------------------------------------
@@ -217,7 +218,7 @@ async function view_fetched_data() {
 
 	if (model_type == 'LSTM') {
 
-		document.getElementById('notification').innerHTML = "model_type In progress.";
+		document.getElementById('notification').innerHTML = "model_type In progress. ";
 
 		var run_model = '';
 		
@@ -271,7 +272,7 @@ async function view_fetched_data() {
 		// ------------------------
 		
 	} else if (model_type == 'Forecasting') {
-		document.getElementById('notification').innerHTML = "model_type In progress.";
+		document.getElementById('notification').innerHTML = "model_type In progress. ";
 
 		var num_of_features_OR_colnum = 1; // number of columns in xs
 		var num_of_outputs = 1;
@@ -310,7 +311,7 @@ async function view_fetched_data() {
 
 	// Print the [first datapoint of] 24 hour predictions from the site
 	var predictions = array_object[1].temperature_2m.at(0);
-	document.getElementById('notification').innerHTML = "Site prediction: " + predictions;
+	document.getElementById('notification').innerHTML += "Site prediction: " + predictions;
 	
 	// -----------------------------------------------
 	
