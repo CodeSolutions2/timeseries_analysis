@@ -373,7 +373,11 @@ async function view_fetched_data() {
 // -----------------------------------------------
 
 async function recur_func(arr) {
-	return [arr[0], arr.length];
+	if (arr != undefined) {
+		return [arr[0], arr.length];
+	} else {
+		return arr;
+	}
 }
 	
 async function shape(arr) {
