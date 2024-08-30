@@ -119,7 +119,10 @@ async function view_fetched_data() {
 	// open_meteo_past_data:
 	var xs_2d_arr = [array_object[0].temperature_2m];
 	console.log('xs_2d_arr: ', xs_2d_arr);
-	// Array: 1 row=num_of_features, 48 columns=num_of_datapoints
+	// Array: 1 row=num_of_features, 240 columns=num_of_datapoints
+
+	var shap = await shape(xs_2d_arr);
+	console.log('Shape xs_2d_arr: ', shap);
 
 	// -------------------------------------------------
 		
@@ -211,26 +214,28 @@ async function view_fetched_data() {
 	// const xs_3d_arr0 = await tf.reshape(x2d, [num_of_features, batch_size, timesteps]);
 	// const xs_3d_arr = await tf.reshape(xs_3d_arr0, [batch_size, timesteps, num_of_features]);
 
-  // OR
+	// OR
 
-  var xs_3d_featNum_batchSize_timesteps = []; // will be shape [num_of_features, batch_size, timesteps]
+	var xs_3d_featNum_batchSize_timesteps = []; // will be shape [num_of_features, batch_size, timesteps]
+	
 	for (var i=0; i<num_of_features; i++) {
-    
-  		const out = X_2d_shape1.at(i);  // out is a vector of length [batch_size*timesteps]
-      var xs_2d_batchSize_timesteps = []; // will be shape [batch_size, timesteps]
-      var temp = [];
-      
-      out.map((val, ind) => {
-        if (ind % timesteps == 0 && ind != 0) {
-          xs_2d_batchSize_timesteps.push(temp);  // log 2D matrix
-          temp = [];  // reset array of length timesteps 
-        }
-        temp.push(val)
-      });
-    
-      xs_3d_featNum_batchSize_timesteps.push(xs_2d_batchSize_timesteps);
-    }
-    console.log("xs_3d_featNum_batchSize_timesteps : ", xs_3d_featNum_batchSize_timesteps);
+		const out = X_2d_shape1.at(i);  // out is a vector of length [batch_size*timesteps]
+		var xs_2d_batchSize_timesteps = []; // will be shape [batch_size, timesteps]
+		var temp = [];
+
+		console.log('out.length: ', out.length);
+
+		for (var j=0; j<out.length; j++) {
+			if (j % timesteps == 0 && j != 0) {
+				xs_2d_batchSize_timesteps.push(temp);  // log 2D matrix
+				temp = [];  // reset array of length timesteps 
+			}
+			temp.push(val)
+		}
+		xs_3d_featNum_batchSize_timesteps.push(xs_2d_batchSize_timesteps);
+	}
+	
+	console.log("xs_3d_featNum_batchSize_timesteps : ", xs_3d_featNum_batchSize_timesteps);
 
   // OR
 
@@ -365,6 +370,24 @@ async function view_fetched_data() {
 	
 }
 
+// -----------------------------------------------
+
+async function recur_func(arr) {
+	return [arr[0], arr.length];
+}
+	
+async function shape(arr) {
+	var out = await recur_func(arr);
+	var shap = [out[1]];
+	const c = 0; // typically work with 4D arrays or less
+	while (out != undefined && c < 4) {
+		out = await recur_func(out[0]);
+		shap.push(out[1]);
+		c = c + 1;
+	}
+	return shap;
+}
+	
 // -----------------------------------------------
 
 async function transpose_2d_array(arr) {
