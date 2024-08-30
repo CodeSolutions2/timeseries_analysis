@@ -119,10 +119,10 @@ async function view_fetched_data() {
 	// open_meteo_past_data:
 	var xs_2d_arr = [array_object[0].temperature_2m];
 	console.log('xs_2d_arr: ', xs_2d_arr);
-	// Array: 1 row=num_of_features, 240 columns=num_of_datapoints
-
+	
 	var shap = await shape(xs_2d_arr);
 	console.log('Shape xs_2d_arr: ', shap);
+	// Array: 1 row=num_of_features, 240 columns=num_of_datapoints
 
 	// -------------------------------------------------
 		
@@ -141,7 +141,6 @@ async function view_fetched_data() {
 	console.log('batch_size: ', batch_size);
 	
 	// -------------------------------------------------
-
 	
 	var X_2d_shape0 = [];
 	var Y_1d_shape0 = [];
@@ -188,12 +187,18 @@ async function view_fetched_data() {
 	}
 	
 	// shape0: On blog, they made X [batch_size*num_of_features, timesteps]
-	console.log("X_2d_shape0: ", X_2d_shape0);
-	console.log("Y_1d_shape0: ", Y_1d_shape0);
+	shap = await shape(X_2d_shape0);
+	console.log('Shape X_2d_shape0: ', shap);
+
+	shap = await shape(Y_1d_shape0);
+	console.log('Shape Y_1d_shape0: ', shap);
 	
 	// shape1: [num_of_features, batch_size*timesteps]
-	console.log("X_2d_shape1: ", X_2d_shape1);
-	console.log("Y_1d_shape1: ", Y_1d_shape1);
+	shap = await shape(X_2d_shape1);
+	console.log('Shape X_2d_shape1: ', shap);
+
+	shap = await shape(Y_1d_shape1);
+	console.log('Shape Y_1d_shape1: ', shap);
 
 	// -------------------------------------------------
 
@@ -230,13 +235,16 @@ async function view_fetched_data() {
 				xs_2d_batchSize_timesteps.push(temp);  // log 2D matrix
 				temp = [];  // reset array of length timesteps 
 			}
-			temp.push(val)
+			temp.push(out.at(j))
 		}
 		xs_3d_featNum_batchSize_timesteps.push(xs_2d_batchSize_timesteps);
 	}
 	
-	console.log("xs_3d_featNum_batchSize_timesteps : ", xs_3d_featNum_batchSize_timesteps);
+	// console.log("xs_3d_featNum_batchSize_timesteps : ", xs_3d_featNum_batchSize_timesteps);
 
+	shap = await shape(xs_3d_featNum_batchSize_timesteps);
+	console.log('Shape xs_3d_featNum_batchSize_timesteps: ', shap);
+	
   // OR
 
   // Transpose X_2d_shape1 [num_of_features, batch_size*timesteps]
@@ -391,7 +399,7 @@ async function shape(arr) {
 		}
 		c = c + 1;
 	}
-	return shap;
+	return shap.slice(0, shap.length-1);
 }
 	
 // -----------------------------------------------
