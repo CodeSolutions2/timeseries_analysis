@@ -301,10 +301,19 @@ async function view_fetched_data() {
 		const result = lstmModel.predict( xs_test_3d_arr );
 		console.log('result : ', result);
 
+		const output_or_probability_or_mse = await result.data();
+		console.log('output_or_probability_or_mse : ', output_or_probability_or_mse);
+		
+		const output_value = result.dataSync()[0];
+		console.log('output_value : ', output_value);
+
 		// ------------------------
 		
 	} else if (model_type == 'Forecasting') {
 		document.getElementById('notification').innerHTML = "model_type In progress.";
+
+
+		// let ys = tf.tensor2d(Yencoded, [rownum, 1], 'float32').flatten();  // flatten the 2D tensor as a 1Dtensor
 
 		var num_of_features_OR_colnum = 1; // number of columns in xs
 		var num_of_outputs = 1;
@@ -371,9 +380,11 @@ async function shape(arr) {
 		c = c + 1;
 	}
 
-	console.log('Inside shape: ', shape);
+	if (shap.length > 1) {
+		shap = shap.slice(0, shap.length-1);
+	}
 	
-	return shap.slice(0, shap.length-1);
+	return shap;
 }
 
 // -----------------------------------------------
@@ -516,15 +527,6 @@ async function transpose_2d_array(arr) {
 }
 
 // -----------------------------------------------
-
-
-// -----------------------------------------------
-
-
-
-// -----------------------------------------------
-
-
   
 
 async function build_lstmModel(batch_size, timesteps, num_of_features_OR_colnum, data_point_shift_between_X_and_Y) {
