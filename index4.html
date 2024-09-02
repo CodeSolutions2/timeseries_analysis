@@ -230,7 +230,7 @@ async function view_fetched_data() {
 	
 	// Assign Y to a 1D tensor
 	const ys_1d_arr0 = await tf.tensor(ys_2d_train);
-	const ys_1d_arr = await tf.reshape (ys_1d_arr0, [ys_2d_train.at(1).length]);
+	const ys_1d_arr = await tf.reshape (ys_1d_arr0, [ys_2d_train.at(1)]);
 	console.log('ys_1d_arr: ', ys_1d_arr);
 
 	// Test shape
