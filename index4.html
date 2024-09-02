@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html>
+<head></head>
+<body>
+
+<h1>Timeseries data webapp</h1>
+<ol type="A">
+	<li>Select a timeseries data source.</li>
+	<li>View fetched data.</li>
+	<li>Select a model to perform timeseries prediction.</li>
+	<li>Predict future time points, evaluate error.</li>
+</ol>
+
+<br>
+	
+<!-- Drop down menu -->
+<label for="select_timeseries_data_source">Select a timeseries data source:</label>
+<select name="timeseries_data_source" id="timeseries_data_source" style="display:block">
+  <option value="---">Select an option</option>
+  <option value="Weather_prediction">Weather prediction</option>
+  <option value="Custom_URL_endpoint">Custom prediction</option>
+</select>
+	
+<input id="LOCATION" type="text" value="" placeholder="LOCATION: Enter City, Country" rows="10" cols="100" style="display:none; text-align: left; width: 600px;">
+
+<br>
+	
+<button id="view_fetched_data" onclick="view_fetched_data()">View Fetched Data</button>
+  
+<br>
+	
+<!-- Drop down menu -->
+<label for="select_model_type">Select a desired model:</label>
+<select name="model_type" id="model_type" style="display:block">
+  <option value="LSTM">LSTM</option>
+  <option value="Forecasting">Forecasting</option>
+  <option value="Transformer_based">Transformer_based</option>
+</select>
+
+<br>
+  
+<button id="predict" onclick="predict()">Predict</button>
+
+<div id="notification"></div>
+<div id="error"></div>
+
+<!-- --------------------------------------------------- -->
+<style>
+div { padding: 10px; display:block; font-family:courier; font-size:15px; }
+div#notification { position: relative; color: #3236a8; }
+div#error { position: relative; color: #bd1f17; }
+</style>
+	
+<!-- --------------------------------------------------- -->
+
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+	
+<script>
+	
+// -----------------------------------------------
+	
+window.addEventListener('beforeunload', function() {
+	window.location.href = window.location.href + '?nocache=' + new Date().getTime();
+
+	document.getElementById("timeseries_data_source").selectedIndex = 0;
+	document.getElementById("LOCATION").value = "";
+	
+});
+
+// -----------------------------------------------
+
+async function processEvent_timeseries_data_source(event) {
+	
+	if (document.getElementById("timeseries_data_source").selectedIndex == 1) {
+		document.getElementById("LOCATION").style.display = 'block';
+	} else {
+		document.getElementById("LOCATION").style.display = 'none';
+	}
+}
+
+
+document.getElementById("timeseries_data_source").addEventListener("change", processEvent_timeseries_data_source, false);
+	
+// -----------------------------------------------
+	
+async function view_fetched_data() {
+
+	// Obtain timeseries data
+	var timeseries_data_source = document.getElementById("timeseries_data_source").value;
+	// console.log('timeseries_data_source: ', timeseries_data_source);
+
+	if (timeseries_data_source == 'Weather_prediction') {
+		var LOCATION = document.getElementById("LOCATION").value;
+		// console.log('LOCATION: ', LOCATION);
+		
+		var Lat_lon_arr = await GET_LATITUDE_LONGITUDE(LOCATION);
+		var latitude = Lat_lon_arr.shift();
+		// console.log('latitude: ', latitude);
+		// console.log('longitude: ', Lat_lon_arr);
+		
+		var array_object = await GET_weather_timeseries_data(latitude, Lat_lon_arr);
+		console.log('array_object: ', array_object);
+		
+	} else if (timeseries_data_source == 'Custom_URL_endpoint') {
+		document.getElementById('notification').innerHTML = "In progress.";
+		
+	} else {
+		document.getElementById('notification').innerHTML = "Please select a timeseries data source."; 
+	}
+
+	// -----------------------------------------------
+	// Time series prediction, like regression, is different than classification because [Y is composed of X]. 
+	// One needs to separate Y from X, using the [batch_size, timestep, num_of_features] organizaton, then restack X.
+	// -----------------------------------------------
+
+	// Prepare the X matrix
+
+	// open_meteo_past_data:
+	var xs_2d_arr = [array_object[0].temperature_2m];
+	console.log('xs_2d_arr: ', xs_2d_arr);
+	
+	var shap = await shape(xs_2d_arr);
+	console.log('Shape xs_2d_arr: ', shap);
+	// Array: 1 row=num_of_features, 240 columns=num_of_datapoints
+
+	// -------------------------------------------------
+		
+	// X matrix should be shape [num_of_datapoints, num_of_features], but I am going to leave it.
+
+	// -------------------------------------------------
+
+	// Calculate [batch_size, timestep, num_of_features] to separate X and Y
+	var timesteps = 6;  // will need to put in timesteps=5 into the model, since we use the 6th one to assign to Y
+	console.log('timesteps: ', timesteps);
+	
+	var num_of_features = xs_2d_arr.length;  // num_of_features_OR_colnum
+	console.log('num_of_features: ', num_of_features);
+
+	var batch_size = Math.floor(xs_2d_arr[0].length / timesteps);
+	console.log('batch_size: ', batch_size);
+	
+	// -------------------------------------------------
+	
+	var xs_3d_train = [];
+	var ys_2d_train = [];
+	var xs_3d_test = [];
+	
+	for (var feats=0; feats<num_of_features; feats++) {
+		// for the organization, features are rows
+		var temp_datappoints_arr = xs_2d_arr.at(feats);
+
+		// cut temp_datappoints_arr into X and Y, every timesteps
+		var x_temp = [];
+		var y_temp = [];
+		var x_temp_test = [];
+		
+		for (var num_of_desired_predictions=0; num_of_desired_predictions<batch_size; num_of_desired_predictions++) {
+			var st = num_of_desired_predictions * timesteps;
+			var stop = st + timesteps;
+			
+			if (num_of_desired_predictions == batch_size-1) {
+				// Test data set
+				x_temp_test.push(temp_datappoints_arr.slice(st, stop-1));
+			} else {
+				// Train data set
+				x_temp.push(temp_datappoints_arr.slice(st, stop-1));
+				y_temp.push(temp_datappoints_arr.at(stop));
+			}
+		}
+		xs_3d_train.push(x_temp);
+		ys_2d_train.push(y_temp);
+
+		xs_3d_test.push(x_temp_test);
+	}
+	
+	// Train shape1
+	shap = await shape(xs_3d_train);  
+	console.log('Shape xs_3d_train: ', shap);  // [num_of_features, batch_size, timesteps] = [ 1, 40, 5 ]
+
+	shap = await shape(ys_2d_train);
+	console.log('Shape ys_2d_train: ', shap); // [ 1, 40 ]
+
+	// -------------------------------------------------
+
+	// Test shape1
+	shap = await shape(xs_3d_test);  
+	console.log('Shape xs_3d_test: ', shap);  // [num_of_features, batch_size, timesteps] = [ 1, 40, 5 ]
+
+	// -------------------------------------------------
+
+	// Update timesteps, timesteps should be 1 less due to assigning the last datapoint to Y.
+	timesteps = timesteps - 1;
+
+	// 1 less to account for the x_test data set, the x_test dataset is removed to test the next hourly temperature prediction
+	batch_size = batch_size - 1;
+
+	// -------------------------------------------------
+	
+	// Put X_3d_test_shape1 [num_of_features, batch_size, timesteps]=[0,1,2] into [batch_size, timesteps, num_of_features]=[1,2,0]
+	
+  // Way 0: using tensorflow.js
+	// const x2d = await tf.tensor(X_2d_shape1);
+	// const xs_3d_arr0 = await tf.reshape(X_3d_shape1, [num_of_features, batch_size, timesteps]);
+	// const xs_3d_arr = await tf.reshape(xs_3d_arr0, [batch_size, timesteps, num_of_features]);
+
+  // Way 1
+  var output_dims_index = [1,2,0];
+	var xs_3d_arr = await exchange_3d_dimensions(xs_3d_train, output_dims_index);
+	
+	// -------------------------------------------------
+
+	// xs_3d_test = await tf.tensor(xs_3d_test);
+	const xs_test_3d_arr0 = await tf.reshape(xs_3d_test, [num_of_features, batch_size, timesteps]);
+	const xs_test_3d_arr = await tf.reshape(xs_test_3d_arr0, [batch_size, timesteps, num_of_features]);
+
+	// -------------------------------------------------
+	
+	// Assign Y to a 1D tensor
+	const ys_1d_arr0 = await tf.tensor(ys_2d_train);
+	const ys_1d_arr = await tf.reshape (ys_1d_arr0, [Y_2d_shape1.at(1).length]);
+	console.log('ys_1d_arr: ', ys_1d_arr);
+	
+	// -----------------------------------------------
+	
+	// Predict future data points
+	var model_type = document.getElementById("model_type").value;
+
+	if (model_type == 'LSTM') {
+
+		var num_of_outputs = 1; // a value from 1 to timesteps, or the number of data points to predict into the future
+		var n_a = timesteps;
+		const input = tf.input({shape: [timesteps, num_of_features]});
+		console.log(JSON.stringify(input.shape));  // [null,5,1]
+		
+		const lstm = tf.layers.lstm({units: n_a, 
+					     returnSequences: false, 
+					     returnState: false, 
+					     kernelInitializer: 'heNormal'
+		});
+		console.log(JSON.stringify(lstm.apply(input).shape)); // [null,5]
+
+		// There should be one output every timesteps=5 for each batch_size=8 
+		const denseLayer1 = tf.layers.dense({units: num_of_outputs, activation: 'linear'});
+		
+		const output = denseLayer1.apply(lstm.apply(input));
+		console.log(JSON.stringify(output.shape));  // [null,1]
+
+		console.log("LSTM model output shape: ", JSON.stringify(output.shape));
+
+		// ------------------------
+		
+		const lstmModel = await tf.model({inputs: input, outputs: output});
+		console.log('lstmModel: ', lstmModel);
+
+		await lstmModel.compile({optimizer: tf.train.adam(), loss: tf.losses.meanSquaredError, metrics: ['mse'],});
+
+		// ------------------------
+		
+		const history = await lstmModel.fit(xs_3d_arr, ys_1d_arr, { 
+					batchSize: batch_size, 
+					epochs: 10, 
+					callbacks: { onEpochEnd: async (epoch, logs) => { 
+						console.log('epoch: ', epoch); 
+						console.log('logs: ', logs); } 
+						   } 
+				});
+		console.log('history: ', history);
+
+		// Evaluation of prediction with respect to the model
+		const result = lstmModel.predict( xs_test_3d_arr );
+		console.log('result : ', result);
+
+		// ------------------------
+		
+	} else if (model_type == 'Forecasting') {
+		document.getElementById('notification').innerHTML = "model_type In progress.";
+
+		var num_of_features_OR_colnum = 1; // number of columns in xs
+		var num_of_outputs = 1;
+
+		// Regression model
+		const input = tf.input({shape: [num_of_features_OR_colnum]}); 
+		const denseLayer1 = tf.layers.dense({units: 64, activation: 'relu'});
+		const denseLayer2 = tf.layers.dense({units: 64, activation: 'relu'});
+		const denseLayer3 = tf.layers.dense({units: 64, activation: 'relu'});
+		const denseLayer4 = tf.layers.dense({units: num_of_outputs});  
+		const output = denseLayer4.apply(denseLayer3.apply(denseLayer2.apply(denseLayer1.apply(input))));
+		const model = tf.model({inputs: input, outputs: output});
+
+		console.log('model: ', model);
+		
+		
+	} else if (model_type == 'Transformer_based') {
+		document.getElementById('notification').innerHTML = "model_type In progress.";
+
+		// Step 0: Load a pretrained model 
+		// https://js.tensorflow.org/api/latest/#loadLayersModel
+		// const pretrained_model = await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/savedmodel/tsmixer/model.json');
+		// pretrained_model.summary();
+
+		// Step 1: Find the desired layer and freeze layers or not
+		// pretrained_model.layers.trainable = false;
+
+		// Obtain a layer from the pretrained model
+
+		
+	} else {
+		document.getElementById('notification').innerHTML = "Please select a model type for timeseries prediction."; 
+	}
+	
+	// -----------------------------------------------
+
+	// Print the [first datapoint of] 24 hour predictions from the site
+	var predictions = array_object[1].temperature_2m.at(0);
+	document.getElementById('notification').innerHTML = "Site prediction: " + predictions;
+	
+	// -----------------------------------------------
+	
+}
+
+// -----------------------------------------------
+
+async function recur_func(arr) {
+	if (arr != undefined) {
+		return [arr[0], arr.length];
+	} else {
+		return arr;
+	}
+}
+	
+async function shape(arr) {
+	var out = await recur_func(arr);
+	var shap = [out[1]];
+	var c = 0; // typically work with 4D arrays or less
+	while (out != undefined && c < 4) {
+		out = await recur_func(out[0]);
+		if (out != undefined) {
+			shap.push(out[1]);
+		}
+		c = c + 1;
+	}
+	return shap.slice(0, shap.length-1);
+}
+
+// -----------------------------------------------
+
+async function zeros(dims) {
+
+	// dims: [desired_0th_dim, desired_1st_dim, desired_2nd_dim]
+
+	var out = [];
+	
+	if (dims.length == 1) {
+		var desired_0th_dim = dims.at(0);
+		
+		out = Array.from({length: desired_0th_dim}, (val, ind) => { return 0; }); 
+
+	} else if (dims.length == 2) {
+		var desired_0th_dim = dims.at(0);
+		var desired_1st_dim = dims.at(1);
+		
+		for (var i=0; i<desired_0th_dim; i++) {
+			var arr = Array.from({length: desired_1st_dim}, (val, ind) => { return 0; }); 
+			out.push(arr);
+		}
+
+	} else if (dims.length == 3) {
+		var desired_0th_dim = dims.at(0);
+		var desired_1st_dim = dims.at(1);
+		var desired_2nd_dim = dims.at(2);
+		
+		for (var i=0; i<desired_0th_dim; i++) {
+			temp = [];
+			for (var j=0; j<desired_1st_dim; j++) {
+				var arr = Array.from({length: desired_2nd_dim}, (val, ind) => { return 0; }); 
+				temp.push(arr);
+			}
+			out.push(temp);
+		}
+		
+	} else {
+		console.log('Enter an array of length 1, 2, or 3. (ie: [desired_0th_dim, desired_1st_dim, desired_2nd_dim])')
+	}
+	
+	return out;
+}
+	
+// -----------------------------------------------
+			
+async function exchange_3d_dimensions(arr_3d, output_dims_index) {
+
+	// dims: [2,1,2] implying the output dimension size
+	// OR
+	// output_dims_index: [0,2,1] implying how to switch the dimension index of arr_3d, this is technically more precise because two dimension indexes could have the same size. So one is specifying exactly which dimension index to use for a particular dimension.
+
+	// Way 0
+	// dims notation [2,2,1] => [2,1,2] 
+	
+	// Way 1
+	// need to say which dimension should switch with, which dimension
+	// output_dims_index specifies the [dimension index] of the desired output array 
+	// [2,2,1] = [org_0th_dim, org_1st_dim, org_2nd_dim] => [2,1,2] = [org_0th_dim, org_2nd_dim, org_1st_dim] = [0,2,1] 
+
+	
+	// [0] List the original array location_values and values
+	var org_0th_dim = [];
+	var org_1st_dim = [];
+	var org_2nd_dim = [];
+	var val = [];
+
+	for (var i=0; i<arr_3d.length; i++) {
+		for (var j=0; j<arr_3d[0].length; j++) {
+			for (var k=0; k<arr_3d[0][0].length; k++) {
+			       org_0th_dim.push(i);
+			       org_1st_dim.push(j);
+			       org_2nd_dim.push(k);
+			       val.push(arr_3d[i][j][k])
+			}
+		}
+	}
+	// console.log('org_0th_dim: ', org_0th_dim);
+	// console.log('org_1st_dim: ', org_1st_dim);
+	// console.log('org_2nd_dim: ', org_2nd_dim);
+	// console.log('val: ', val);
+	
+	// Need to transform output_dims_index, from index to dimensions
+	var dims_of_org_arr = [arr_3d.length, arr_3d[0].length, arr_3d[0][0].length];
+	var dims = output_dims_index.map((val, i) => { return dims_of_org_arr.at(val); });
+	
+	
+	// [1] Make the new shape array, filled with zeros
+	var desired_3d = await zeros(dims);
+
+	// Exchange notation for desired output index dimensions
+	var all = [org_0th_dim, org_1st_dim, org_2nd_dim];
+	var all_switched = output_dims_index.map((val, i) => { return all.at(val); });
+	org_0th_dim = all_switched.at(0);
+	org_1st_dim = all_switched.at(1);
+	org_2nd_dim = all_switched.at(2);
+
+	
+	// [2] Fill in output shaped 3d array
+	var desired_0th_dim = dims.at(0);
+	var desired_1st_dim = dims.at(1);
+	var desired_2nd_dim = dims.at(2);
+	
+	for (var i=0; i<desired_0th_dim; i++) {
+		for (var j=0; j<desired_1st_dim; j++) {
+			for (var k=0; k<desired_2nd_dim; k++) {
+				
+				// cycle over the index of a for every i,j,k value
+			       for (var ind=0; ind<org_0th_dim.length; ind++) {
+				       if (org_0th_dim.at(ind) == i && org_1st_dim.at(ind) == j && org_2nd_dim.at(ind) == k) {
+						desired_3d[i][j][k] = val.at(ind);
+				       }
+			       }
+			}
+		}
+	}
+			       
+	return desired_3d;       
+}
+  
+// -----------------------------------------------
+
+async function transpose_2d_array(arr) {
+
+	var transpose_colNum = arr.length;
+	var transpose_rowNum = arr.at(0).length;
+	var transpose_arr = [];
+	for (var i=0; i<transpose_rowNum ; i++) {
+		const col = Array.from({ length: transpose_colNum }, (_, i) => 0);
+		transpose_arr.push(col);
+	}
+	
+	for (var i=0; i<arr.length; i++) {
+		for (var j=0; j<arr.at(i).length; j++) {
+			transpose_arr[j][i] = arr[i][j];
+		}
+	}
+	return transpose_arr;
+}
+
+// -----------------------------------------------
+
+
+// -----------------------------------------------
+
+
+
+// -----------------------------------------------
+
+
+  
+
+async function build_lstmModel(batch_size, timesteps, num_of_features_OR_colnum, data_point_shift_between_X_and_Y) {
+
+	// returnSequences: true = prediction at each data point, false = prediction at each timestep (uses all the timestep data to make one prediction)
+	// returnState: true = return the a and c matricies, false = do not return the a and c matricies
+	
+	var n_a = timesteps; // LSTMCell's number of units or hidden dimension size of the matrices (ie: a, c) used to compute the output
+
+	// when n_a=8 
+	// Error: Tensor must have a shape comprised of positive integers but got shape [,32].
+
+	// when n_a = 6 = timesteps
+	// Error: Tensor must have a shape comprised of positive integers but got shape [,24].
+	
+	// All predictions are per batch=batch_size. The amount of data points that one wants to use to obtain a prediction is called a timestep. The number of timesteps selected, dictates how many batches=batch_size that one needs to perform; data length divided by timesteps equals batch_size.
+
+	// When one selects the timestep, LSTM automatically gives predictions for two cases only: 0. predictions for all the data points in the timestep per batch, or 1. one data point prediction at the end of the timestep per batch. 
+
+	// To get more variety of prediction output number, I guess one could add a dense layer to change the number of outputs from 2 to timesteps-1 to capture the [data point shift between the X and Y data vectors].
+
+	// The shift between the X and Y data vectors is how many data points one wants to predict into the future.
+
+	const case_num = 1;
+	// tf.input({shape: [batch_size, timesteps, num_of_features_OR_colnum]}) batch_size is calculated by LSTM so one does not need to write it
+	const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
+	
+	if (case_num == 0) {
+		// Case 0: predictions for all the data points in the timestep per batch (most basic model)
+		const lstm = tf.layers.lstm({units: n_a, 
+					     returnSequences: true, 
+					     returnState: false, 
+					     kernelInitializer: 'heNormal'
+		});
+		
+		// The output will be [all prediction per timesteps], which is 6 prediction per 6 data points, to give a prediction for [every hour] per 24 hours; returnSequences=true allows one prediction per data point.
+		const output = lstm.apply(input);
+		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
+		return await tf.model({inputs: input, outputs: output});
+
+	} else if (case_num == 1) {
+		// Case 1: one data point prediction at the end of the timestep per batch (most basic model)
+		const lstm = tf.layers.lstm({units: n_a, 
+					     returnSequences: false, 
+					     returnState: false, 
+					     kernelInitializer: 'heNormal'
+		});
+		
+		// The output will be [one prediction per timesteps], which is 1 prediction per 6 data points, to give a prediction for [morning, noon, afternoon, night] per 24 hours; returnSequences=false allows one prediction per timesteps.
+		const output = lstm.apply(input);
+		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
+		return await tf.model({inputs: input, outputs: output});
+
+	} else if (case_num == 2) {
+		// Case 2: Forecasting - predictions for all the data points in the timestep per batch, but limit prediction output number from 2 to timesteps-1
+		// const input = tf.input({shape: [timesteps, num_of_features_OR_colnum]});
+		const lstm = tf.layers.lstm({units: n_a, returnSequences: true, returnState: false, kernelInitializer: 'heNormal'});
+		const dropout = tf.layers.dropout({rate: 0.2});
+		// If returnSequences = true, there will be [one prediction per data point every batch] so one could reduce the number of 'regression-like' outputs to a number from 2 to timesteps-1.  If one wanted 1 output only, set returnSequences = false to obtain one prediction per timestep.
+		var num_of_outputs = data_point_shift_between_X_and_Y; // a value from 2 to timesteps-1, or the number of data points to predict into the future
+		const denseLayer1 = tf.layers.dense({units: num_of_outputs, activation: 'linear'});
+		const output = denseLayer1.apply(dropout.apply(lstm.apply(input)));
+		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
+		return await tf.model({inputs: input, outputs: output});
+	
+	} else if (case_num == 3) {
+		// Case 3: Classification prediction of timeseries class - one data point prediction at the end of the timestep per batch
+		var num_of_classes = 2;  // 2 or more
+		const lstm = tf.layers.lstm({units: n_a, returnSequences: false});
+		const denseLayer1 = tf.layers.dense({units: num_of_classes, activation: 'softmax'});
+		const output = denseLayer1.apply(lstm.apply(input));
+		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
+		return await tf.model({inputs: input, outputs: output});
+	}
+}
+
+// -----------------------------------------------
+
+
+
+// -----------------------------------------------
+	
+async function GET_LATITUDE_LONGITUDE(LOCATION) {
+	
+	// [Step 0] Get latitude and longitude
+	// https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${GCP_API_KEY}
+	// OR
+	// https://nominatim.org/release-docs/latest/api/Search/
+	var url = `https://nominatim.openstreetmap.org/search?q=${LOCATION}&format=json`;
+	var method = 'GET';  // method: 'GET', 'POST'
+	var data = [];  // data: required data format for url address
+	var headers = {};
+	var return_type = 'json';  // return_type: 'json', 'blob', 'blob_file_pdf', 'arrayBuffer', 'text'
+	var out = await fetch_CORS(url, method, data, headers, return_type);
+	console.log('out: ', out); 
+
+	// Parse for correct location: choose the first location because it will be most precise
+	return [Number(out[0].lat), Number(out[0].lon)];
+}
+
+// -----------------------------------------------
+	
+async function GET_weather_timeseries_data(latitude, longitude) {
+	
+	// [Step 0] Get weather data
+	// https://open-meteo.com/en/docs
+	// The API endpoint /v1/forecast accepts a geographical coordinate, a list of weather variables and responds with a JSON hourly weather forecast for 7 days. Time always starts at 0:00 today and contains 168 hours. If &forecast_days=16 is set, up to 16 days of forecast can be returned.
+
+	var method = 'GET';  // method: 'GET', 'POST'
+	var data = [];  // data: required data format for url address
+	var headers = {};
+	var return_type = 'json';  // return_type: 'json', 'blob', 'blob_file_pdf', 'arrayBuffer', 'text'
+
+	// --------------------------------
+	
+	// Obtain weather [temperature] data from the past (Prediction)
+	// Return temperature every hour for the [previous 2 days OR more], such that the next day can be predicted
+	url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m&past_days=10&forecast_days=0`;
+	var open_meteo_past_data = await fetch_CORS(url, method, data, headers, return_type);
+	console.log('open_meteo_past_data: ', open_meteo_past_data);
+
+	// --------------------------------
+	
+	// Obtain weather [temperature] predictions by open-meteo (Actual)
+	// Return temperature every hour for the next day
+	url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m&past_days=0&forecast_days=1`;
+	var open_meteo_predictions = await fetch_CORS(url, method, data, headers, return_type);
+	console.log('open_meteo_predictions: ', open_meteo_predictions);
+
+	return [open_meteo_past_data.hourly, open_meteo_predictions.hourly];
+}
+
+// -----------------------------------------------
+
+
+
+	
+// -----------------------------------------------
+// CORS methods
+// -----------------------------------------------
+async function fetch_CORS(url, method, data, headers, return_type) {
+
+	// url: url address
+	// method: 'GET', 'POST'
+	// data: required data format for url address
+	var w_or_wo_proxyhandler = 'w_proxyhandler';  // w_or_wo_proxyhandler: 'w_proxyhandler', 'wo_proxyhandler'
+	// return_type: json, blob, arrayBuffer, text
+
+	// --------------------------------
+
+	// Determine request method
+	var headers_final = {
+		"Content-Type": "application/json",
+		"Referer": url,
+		"Origin": "https://codesolutions2.github.io",
+		"Connection": "keep-alive",
+		//"Sec-Fetch-Dest": "empty",
+		//"Sec-Fetch-Mode": "cors", 
+		//"Sec-Fetch-Site": "cross-site",
+		//"Sec-Fetch-User": "?1",
+		"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0",
+		"Access-Control-Allow-Origin": "*",
+		//'Access-Control-Allow-Credentials': false, 
+		//"Access-Control-Request-Method": method,
+		//"Access-Control-Request-Headers": 'content-type,x-pingother',
+		//'Cache-Control': 'max-age=0',
+	};
+
+	
+	headers_final = Object.assign({}, headers_final, headers);
+	
+	var options = { 
+		method : method,
+		mode: 'cors',
+		headers: new Headers(headers_final),
+		cache: "no-cache",
+		// crossorigin: 'anonymous',
+		crossorigin: '*',
+		redirect: "follow"
+	};
+
+	if (method == 'POST') {
+		options.body = JSON.stringify(data);
+	}
+
+	// --------------------------------
+
+	// Determine the type of output to return 
+	
+	if (return_type == 'json') {
+		if (w_or_wo_proxyhandler == 'w_proxyhandler') {
+			const proxy3 = await define_proxy_handler();
+			return await proxy3(url, options)
+				.then(response => response.json())
+				.then(async function(data) { return data; })
+				.catch(error => console.error("error: ", error));
+		} else { 
+			return await fetch(url, options)
+				.then(response => response.json())
+				.then(async function(data) { return data; })
+				.catch(error => console.error("error: ", error));
+		}
+		
+	} else if (return_type == 'blob') {
+		if (w_or_wo_proxyhandler == 'w_proxyhandler') {
+			const proxy3 = await define_proxy_handler();
+			return await proxy3(url, options)
+				.then(response => response.blob())
+				.then(async function(blob_object) { return blob_object; })
+				.catch(error => console.error("error: ", error));
+		} else {
+			return await fetch(url, options)
+				.then(response => response.blob())
+				.then(async function(blob_object) { return blob_object; })
+				.catch(error => console.error("error: ", error));
+		}
+		
+	} else if (return_type == 'arrayBuffer') {
+		if (w_or_wo_proxyhandler == 'w_proxyhandler') {
+			const proxy3 = await define_proxy_handler();
+			return await proxy3(url, options)
+				.then(response => response.arrayBuffer())
+				.then(async function(arraybuffer) { return arraybuffer; })
+				.catch(error => console.error("error: ", error));
+		} else {
+			return await fetch(url, options)
+				.then(response => response.arrayBuffer())
+				.then(async function(arraybuffer) { return arraybuffer; })
+				.catch(error => console.error("error: ", error));
+		}
+		
+	} else if (return_type == 'text') {
+		if (w_or_wo_proxyhandler == 'w_proxyhandler') {
+			const proxy3 = await define_proxy_handler();
+			return await proxy3(url, options)
+				.then(res => res.text())
+				.then(str_data => { return str_data; })
+				.catch(error => console.error("error: ", error));
+		} else {
+			return await fetch(url, options)
+				.then(res => res.text())
+				.then(str_data => { return str_data; })
+				.catch(error => console.error("error: ", error));
+		}
+
+	} else if (return_type == 'html') {
+		if (w_or_wo_proxyhandler == 'w_proxyhandler') {
+			const proxy3 = await define_proxy_handler();
+			return await proxy3(url, options)
+				.then(res => res.text())
+				.then(str_data => { return str_data; })
+				.catch(error => console.error("error: ", error));
+		} else {
+			return await fetch(url, options)
+				.then(res => res.text())
+				.then(str_data => { return str_data; })
+				.catch(error => console.error("error: ", error));
+		}
+	}
+
+	// --------------------------------
+}
+
+
+async function define_proxy_handler() {
+	// Parameters to influence Response Header
+	// The `handler` object defines a `apply` method that intercepts the `fetch` function calls and adds the "Access-Control-Allow-Origin" header with a value of "*" to the request options. The `new Proxy(fetch, handler)` creates a proxied version of the `fetch` function that applies the defined handler.
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers
+	const handler = {
+		apply: function(target, thisArg, args) {
+			// One needs to re-define the input arguments of the handler because a constant variable is used as a function (ie: await proxy3(url, options))
+			const [url, options] = args;
+			if (options && options.headers) {
+				options.headers['Access-Control-Allow-Origin'] = '*';
+				options.headers['Access-Control-Allow-Credentials'] = false;
+				options.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE';
+				// options.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept';
+				options.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization';
+				options.headers['Access-Control-Max-Age'] = 0;
+			} else {
+				args[1] = {
+					headers: { 
+						'Access-Control-Allow-Origin': '*',
+						'Access-Control-Allow-Credentials': false,
+						'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE',
+						'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+						'Access-Control-Max-Age': 0
+					}
+				};
+			}
+			// console.log('args: ', args);
+			return Reflect.apply(target, thisArg, args);
+		}
+	};
+
+	// Proxy sturcture works! 
+	// Calls the function WITHOUT input variables to assign a proxy definition to a constant variable. 
+	// The constant variable is called as a function, where it resolves promises. 
+	// Call the constant variable proxy3 as a function to resolve the promise correctly
+	return await new Proxy(fetch, handler);
+}
+
+// -----------------------------------------------
+
+
+</script>
+</body>
+</html>
