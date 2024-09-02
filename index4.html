@@ -173,7 +173,6 @@ async function view_fetched_data() {
 		}
 		xs_3d_train.push(x_temp);
 		ys_2d_train.push(y_temp);
-
 		xs_3d_test.push(x_temp_test);
 	}
 	
@@ -182,7 +181,7 @@ async function view_fetched_data() {
 	console.log('Shape xs_3d_train: ', shap);  // [num_of_features, batch_size, timesteps] = [ 1, 39, 5 ]
 
 	shap = await shape(ys_2d_train);
-	console.log('Shape ys_2d_train: ', shap); // [ 1, 39 ]
+	console.log('Shape ys_2d_train: ', shap); // [num_of_features, batch_size] = [ 1, 39 ]
 
 	// -------------------------------------------------
 
@@ -215,6 +214,9 @@ async function view_fetched_data() {
 	// Train shape
 	shap = await shape(xs_3d_arr);  
 	console.log('Shape xs_3d_arr: ', shap);
+
+	xs_3d_arr = await tf.tensor(xs_3d_arr);
+	console.log('Tensorflow tensor (X train) - xs_3d_arr: ', xs_3d_arr);
 	
 	// -------------------------------------------------
 
@@ -226,18 +228,20 @@ async function view_fetched_data() {
 	shap = await shape(xs_test_3d_arr);  
 	console.log('Shape xs_test_3d_arr: ', shap);
 
+	xs_test_3d_arr = await tf.tensor(xs_test_3d_arr);
+	console.log('Tensorflow tensor (X test) - xs_test_3d_arr: ', xs_test_3d_arr);
+	
 	// -------------------------------------------------
 	
 	// Assign Y to a 1D tensor
-	console.log('ys_2d_train: ', ys_2d_train);
+	console.log('ys_2d_train: ', ys_2d_train);	// [num_of_features, batch_size] = [ 1, 39 ]
 	
-	const ys_1d_arr0 = await tf.tensor(ys_2d_train);
-	console.log('ys_1d_arr0: ', ys_1d_arr0);
-
+	var ys_1d_arr = await tf.tensor(ys_2d_train);
+	console.log('Tensorflow tensor (Y train) - ys_1d_arr: ', ys_1d_arr);
 	
 	
-	const ys_1d_arr = await tf.reshape(ys_1d_arr0, [batch_size]);
-	console.log('ys_1d_arr: ', ys_1d_arr);
+	// const ys_1d_arr = await tf.reshape(ys_1d_arr0, [batch_size]);
+	// console.log('ys_1d_arr: ', ys_1d_arr);
 
 	// Test shape
 	shap = await shape(ys_1d_arr);  
@@ -266,9 +270,8 @@ async function view_fetched_data() {
 		const denseLayer1 = tf.layers.dense({units: num_of_outputs, activation: 'linear'});
 		
 		const output = denseLayer1.apply(lstm.apply(input));
-		console.log(JSON.stringify(output.shape));  // [null,1]
 
-		console.log("LSTM model output shape: ", JSON.stringify(output.shape));
+		console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [null,1]
 
 		// ------------------------
 		
