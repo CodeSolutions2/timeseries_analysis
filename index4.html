@@ -235,13 +235,18 @@ async function view_fetched_data() {
 	
 	// Assign Y to a 1D tensor
 	console.log('ys_2d_train: ', ys_2d_train);	// [num_of_features, batch_size] = [ 1, 39 ]
+
+	// If ys_2d_train is shape [num_of_features, batch_size] : target expected a batch of elements where each example has shape [1] (i.e.,tensor shape [*,1]) but the target received an input with 1 examples, each with shape [39] (tensor shape [1,39])
+
+	// So, need to stack [batch_size] per [feature]
+	var ys_1d_arr = [];
+	for (var i=0; i<num_of_features; i++) {
+		ys_1d_arr = ys_1d_arr.concat(ys_2d_train[i]);
+	}
 	
-	var ys_1d_arr = await tf.tensor(ys_2d_train);
+	ys_1d_arr = await tf.tensor(ys_1d_arr);
 	console.log('Tensorflow tensor (Y train) - ys_1d_arr: ', ys_1d_arr);
 	
-	
-	// const ys_1d_arr = await tf.reshape(ys_1d_arr0, [batch_size]);
-	// console.log('ys_1d_arr: ', ys_1d_arr);
 
 	// Test shape
 	shap = await shape(ys_1d_arr);  
@@ -365,6 +370,9 @@ async function shape(arr) {
 		}
 		c = c + 1;
 	}
+
+	console.log('Inside shape: ', shape);
+	
 	return shap.slice(0, shap.length-1);
 }
 
