@@ -179,16 +179,16 @@ async function view_fetched_data() {
 	
 	// Train shape1
 	shap = await shape(xs_3d_train);  
-	console.log('Shape xs_3d_train: ', shap);  // [num_of_features, batch_size, timesteps] = [ 1, 40, 5 ]
+	console.log('Shape xs_3d_train: ', shap);  // [num_of_features, batch_size, timesteps] = [ 1, 39, 5 ]
 
 	shap = await shape(ys_2d_train);
-	console.log('Shape ys_2d_train: ', shap); // [ 1, 40 ]
+	console.log('Shape ys_2d_train: ', shap); // [ 1, 39 ]
 
 	// -------------------------------------------------
 
 	// Test shape1
 	shap = await shape(xs_3d_test);  
-	console.log('Shape xs_3d_test: ', shap);  // [num_of_features, batch_size, timesteps] = [ 1, 40, 5 ]
+	console.log('Shape xs_3d_test: ', shap);  // [num_of_features, batch_size, timesteps] = [ 1, 39, 5 ]
 
 	// -------------------------------------------------
 
@@ -229,10 +229,12 @@ async function view_fetched_data() {
 	// -------------------------------------------------
 	
 	// Assign Y to a 1D tensor
+	console.log('ys_2d_train: ', ys_2d_train);
+	
 	const ys_1d_arr0 = await tf.tensor(ys_2d_train);
 	console.log('ys_1d_arr0: ', ys_1d_arr0);
 
-	console.log('ys_2d_train.at(1): ', ys_2d_train.at(1));
+	
 	
 	const ys_1d_arr = await tf.reshape(ys_1d_arr0, [batch_size]);
 	console.log('ys_1d_arr: ', ys_1d_arr);
