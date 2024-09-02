@@ -145,6 +145,8 @@ async function view_fetched_data() {
 	var xs_3d_train = [];
 	var ys_2d_train = [];
 	var xs_3d_test = [];
+
+	var batch_size_test = 0;
 	
 	for (var feats=0; feats<num_of_features; feats++) {
 		// for the organization, features are rows
@@ -162,6 +164,7 @@ async function view_fetched_data() {
 			if (num_of_desired_predictions == batch_size-1) {
 				// Test data set
 				x_temp_test.push(temp_datappoints_arr.slice(st, stop-1));
+				batch_size_test = batch_size_test + 1;
 			} else {
 				// Train data set
 				x_temp.push(temp_datappoints_arr.slice(st, stop-1));
@@ -191,28 +194,39 @@ async function view_fetched_data() {
 
 	// Update timesteps, timesteps should be 1 less due to assigning the last datapoint to Y.
 	timesteps = timesteps - 1;
+	console.log('timesteps: ', timesteps);
 
 	// 1 less to account for the x_test data set, the x_test dataset is removed to test the next hourly temperature prediction
 	batch_size = batch_size - 1;
-
+	console.log('batch_size: ', batch_size);
+	
 	// -------------------------------------------------
 	
 	// Put X_3d_test_shape1 [num_of_features, batch_size, timesteps]=[0,1,2] into [batch_size, timesteps, num_of_features]=[1,2,0]
 	
-  // Way 0: using tensorflow.js
+  	// Way 0: using tensorflow.js
 	// const x2d = await tf.tensor(X_2d_shape1);
 	// const xs_3d_arr0 = await tf.reshape(X_3d_shape1, [num_of_features, batch_size, timesteps]);
 	// const xs_3d_arr = await tf.reshape(xs_3d_arr0, [batch_size, timesteps, num_of_features]);
 
-  // Way 1
-  var output_dims_index = [1,2,0];
-	var xs_3d_arr = await exchange_3d_dimensions(xs_3d_train, output_dims_index);
+  	// Way 1
+	var xs_3d_arr = await exchange_3d_dimensions(xs_3d_train, [1,2,0]);
+
+	// Train shape
+	shap = await shape(xs_3d_arr);  
+	console.log('Shape xs_3d_arr: ', shap);
 	
 	// -------------------------------------------------
 
+	console.log('batch_size_test: ', batch_size_test);
+	
 	// xs_3d_test = await tf.tensor(xs_3d_test);
-	const xs_test_3d_arr0 = await tf.reshape(xs_3d_test, [num_of_features, batch_size, timesteps]);
-	const xs_test_3d_arr = await tf.reshape(xs_test_3d_arr0, [batch_size, timesteps, num_of_features]);
+	const xs_test_3d_arr0 = await tf.reshape(xs_3d_test, [num_of_features, batch_size_test, timesteps]);
+	const xs_test_3d_arr = await tf.reshape(xs_test_3d_arr0, [batch_size_test, timesteps, num_of_features]);
+
+	// Test shape
+	shap = await shape(xs_test_3d_arr);  
+	console.log('Shape xs_test_3d_arr: ', shap);
 
 	// -------------------------------------------------
 	
@@ -220,6 +234,10 @@ async function view_fetched_data() {
 	const ys_1d_arr0 = await tf.tensor(ys_2d_train);
 	const ys_1d_arr = await tf.reshape (ys_1d_arr0, [Y_2d_shape1.at(1).length]);
 	console.log('ys_1d_arr: ', ys_1d_arr);
+
+	// Test shape
+	shap = await shape(ys_1d_arr);  
+	console.log('Shape ys_1d_arr: ', shap);
 	
 	// -----------------------------------------------
 	
