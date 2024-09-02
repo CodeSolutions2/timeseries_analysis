@@ -281,7 +281,7 @@ async function view_fetched_data() {
 		// ------------------------
 		
 		const lstmModel = await tf.model({inputs: input, outputs: output});
-		console.log('lstmModel: ', lstmModel);
+		// console.log('lstmModel: ', lstmModel);
 
 		await lstmModel.compile({optimizer: tf.train.adam(), loss: tf.losses.meanSquaredError, metrics: ['mse'],});
 
@@ -289,24 +289,30 @@ async function view_fetched_data() {
 		
 		const history = await lstmModel.fit(xs_3d_arr, ys_1d_arr, { 
 					batchSize: batch_size, 
-					epochs: 10, 
+					epochs: 60, 
 					callbacks: { onEpochEnd: async (epoch, logs) => { 
-						console.log('epoch: ', epoch); 
-						console.log('logs: ', logs); } 
-						   } 
+						// console.log('epoch: ', epoch); 
+						// console.log('logs: ', logs); 
+					}} 
 				});
 		console.log('history: ', history);
 
+		// ------------------------
+		// Print prediction from LSTM model
+		// ------------------------
+		
 		// Evaluation of prediction with respect to the model
 		const result = lstmModel.predict( xs_test_3d_arr );
 		console.log('result : ', result);
 
-		const output_or_probability_or_mse = await result.data();
-		console.log('output_or_probability_or_mse : ', output_or_probability_or_mse);
-		
+		// const output_value = await result.data();
+		// console.log('output_value : ', output_value);
+		// OR
 		const output_value = result.dataSync()[0];
 		console.log('output_value : ', output_value);
 
+		document.getElementById('notification').innerHTML = "LSTM model prediction: " + output_value;
+		
 		// ------------------------
 		
 	} else if (model_type == 'Forecasting') {
@@ -352,7 +358,7 @@ async function view_fetched_data() {
 
 	// Print the [first datapoint of] 24 hour predictions from the site
 	var predictions = array_object[1].temperature_2m.at(0);
-	document.getElementById('notification').innerHTML = "Site prediction: " + predictions;
+	document.getElementById('notification').innerHTML += "Site prediction: " + predictions;
 	
 	// -----------------------------------------------
 	
