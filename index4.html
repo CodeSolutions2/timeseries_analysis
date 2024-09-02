@@ -234,7 +234,7 @@ async function view_fetched_data() {
 
 	console.log('ys_2d_train.at(1): ', ys_2d_train.at(1));
 	
-	const ys_1d_arr = await tf.reshape(ys_1d_arr0, [ys_2d_train.at(1)]);
+	const ys_1d_arr = await tf.reshape(ys_1d_arr0, [batch_size]);
 	console.log('ys_1d_arr: ', ys_1d_arr);
 
 	// Test shape
