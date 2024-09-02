@@ -289,9 +289,9 @@ async function view_fetched_data() {
 		
 		const history = await lstmModel.fit(xs_3d_arr, ys_1d_arr, { 
 					batchSize: batch_size, 
-					epochs: 60, 
+					epochs: 200, 
 					callbacks: { onEpochEnd: async (epoch, logs) => { 
-						// console.log('epoch: ', epoch); 
+						if (epoch % 10 == 0) { console.log('epoch: ', epoch); } 
 						// console.log('logs: ', logs); 
 					}} 
 				});
