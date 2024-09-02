@@ -311,7 +311,7 @@ async function view_fetched_data() {
 		const output_value = result.dataSync()[0];
 		console.log('output_value : ', output_value);
 
-		document.getElementById('notification').innerHTML = "LSTM model prediction: " + output_value;
+		document.getElementById('notification').innerHTML = "LSTM model output [not the prediction]: " + output_value;
 		
 		// ------------------------
 		
@@ -324,38 +324,7 @@ async function view_fetched_data() {
 
 		// xs_2d_arr Array: 1 row=num_of_features, 240 columns=num_of_datapoints
 
-		// ------------------------
-		
-		// transpose xs_2d_arr [num_of_features, num_of_datapoints] to obtain shape [num_of_datapoints, num_of_features]
-		xs_2d_arr = await transpose_2d_array(xs_2d_arr);
 
-		// ------------------------
-
-		shap = await shape(xs_2d_arr);  
-		console.log('Shape xs_2d_arr: ', shap);
-
-		// ------------------------
-
-		var num_of_datapoints = shap[0];
-
-		// ------------------------
-		
-		var xs_flat = [];
-		for (var i=0; i<num_of_datapoints; i++) {
-			for (var j=0; j<num_of_features; j++) {
-				xs_flat.push(xs_2d_arr[i][j]);
-			}
-		}
-		
-		// ------------------------
-		
-		var data_point_shift_between_X_and_Y = 1;
-		
-		var repeated_last_value = await Array.from({length: data_point_shift_between_X_and_Y}, (val, ind) => { return xs_flat.at(xs_flat.length-1); });
-		
-		var ys_1d_arr = xs_flat.slice(data_point_shift_between_X_and_Y, xs_flat.length).concat(repeated_last_value);
-		
-		// ------------------------
 		
 		var num_of_outputs = 1;
 
@@ -374,36 +343,6 @@ async function view_fetched_data() {
 
 		// ------------------------
 
-		const batchSize = 6;
-		
-		const history = await Regmodel.fit(xs_2d_arr, ys_1d_arr, { 
-					batchSize: batchSize, 
-					epochs: 200, 
-					callbacks: { onEpochEnd: async (epoch, logs) => { 
-						if (epoch % 10 == 0) { console.log('epoch: ', epoch); } 
-						// console.log('logs: ', logs); 
-					}} 
-				});
-		console.log('history: ', history);
-
-		// ------------------------
-		// Print prediction
-		// ------------------------
-		var test_data = xs_flat.slice(xs_flat.length-1-6, xs_flat.length-1);
-		const xs_test_3d_arr_reg = await tf.reshape(test_data, [batchSize, num_of_features]);
-		// needs to be shaped into [num_of_datapoints=batchSize, num_of_features=1]
-		
-		// Evaluation of prediction with respect to the model
-		const result = Regmodel.predict( xs_test_3d_arr_reg );
-		console.log('result : ', result);
-
-		// const output_value = await result.data();
-		// console.log('output_value : ', output_value);
-		// OR
-		const output_value = result.dataSync()[0];
-		console.log('output_value : ', output_value);
-
-		document.getElementById('notification').innerHTML = "Regression model prediction: " + output_value;
 		
 		// ------------------------
 		
