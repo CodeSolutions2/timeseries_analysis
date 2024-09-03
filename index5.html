@@ -11,8 +11,15 @@
 	<li>Predict future time points, evaluate error.</li>
 </ol>
 
-<br>
-	
+<!-- ---------------------------------------- -->
+<!-- View two split window -->
+<div align="left">
+<table style='text-align: left; width: 500px; display:block'>
+<tr>
+
+<th id="timeseries_input">
+
+<h3>[Step 0] Select an input timeseries data source.</h3>
 <!-- Drop down menu -->
 <label for="select_timeseries_data_source">Select a timeseries data source:</label>
 <select name="timeseries_data_source" id="timeseries_data_source" style="display:block">
@@ -25,6 +32,12 @@
 
 <br>
 	
+<h3>[Step 1] View the selected timeseries data.</h3>
+<button id="view_fetched_data" onclick="view_fetched_data()">View Fetched Data</button>
+  
+<br>
+
+<h3>[Step 2] Predict future datapoints of the timeseries data.</h3>
 <!-- Drop down menu -->
 <label for="select_model_type">Select a desired model:</label>
 <select name="model_type" id="model_type" style="display:block">
@@ -32,31 +45,52 @@
   <option value="Forecasting">Forecasting</option>
   <option value="Transformer_based">Transformer_based</option>
 </select>
-
 <br>
-
-<button id="view_fetched_data" onclick="view_fetched_data()">View Fetched Data</button>
-  
+<button id="predict" onclick="predict()">Predict</button>
 <br>
-	
 <progress id="progress_bar" max="100" value="0" style="display:none">0%</progress>
 
 <br>
 	
 <div id="notification"></div>
 <div id="error"></div>
+<!-- ---------------------------------------- -->
 
-<!-- --------------------------------------------------- -->
+<th id="timeseries_output">
+<h3>[Steps 1 & 2] View Results.</h3>
+</th>
+	
+</tr>
+</table>
+</div>  
+<!-- ---------------------------------------- -->
+
+
+
+<!-- ---------------------------------------- -->
+<!-- CSS -->
 <style>
 div { padding: 10px; display:block; font-family:courier; font-size:15px; }
 div#notification { position: relative; color: #3236a8; }
 div#error { position: relative; color: #bd1f17; }
+
+table {vertical-align: top; border-collapse: collapse; position: relative; z-index: 0; border: 0px solid black;}
+
+tr {vertical-align: top; border: 0px solid black; padding: 30px 30px; }
+
+th, td {vertical-align: top; border: 0px solid black; padding: 10px; }
+th#pdf_viewer_input {width: 100%; }
+th#pdf_viewer_output {width: 100%; }
+
+object#pdf_object_element {position: absolute; vertical-align: top; top: 200; z-index: 200; }
 </style>
-	
-<!-- --------------------------------------------------- -->
+
+<!-- ---------------------------------------- -->
 
 
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+
+<script src="https://cdn.plot.ly/plotly-2.30.0.min.js" charset="utf-8"></script>
 	
 <script>
 	
@@ -85,7 +119,9 @@ async function processEvent_timeseries_data_source(event) {
 document.getElementById("timeseries_data_source").addEventListener("change", processEvent_timeseries_data_source, false);
 	
 // -----------------------------------------------
-	
+
+var array_object = [];
+
 async function view_fetched_data() {
 
 	// Obtain timeseries data
@@ -101,7 +137,7 @@ async function view_fetched_data() {
 		// console.log('latitude: ', latitude);
 		// console.log('longitude: ', Lat_lon_arr);
 		
-		var array_object = await GET_weather_timeseries_data(latitude, Lat_lon_arr);
+		array_object = await GET_weather_timeseries_data(latitude, Lat_lon_arr);
 		console.log('array_object: ', array_object);
 		
 	} else if (timeseries_data_source == 'Custom_URL_endpoint') {
@@ -112,451 +148,478 @@ async function view_fetched_data() {
 	}
 
 	// -----------------------------------------------
-	// Time series prediction, like regression, is different than classification because [Y is composed of X]. 
-	// One needs to separate Y from X, using the [batch_size, timestep, num_of_features] organizaton, then restack X.
-	// -----------------------------------------------
-
-	// Prepare the X matrix
-
-	// open_meteo_past_data:
-	var xs_2d_arr = [array_object[0].temperature_2m];
-	console.log('xs_2d_arr: ', xs_2d_arr);
 	
-	var shap = await shape(xs_2d_arr);
-	console.log('Shape xs_2d_arr: ', shap);
-	// Array: 1 row=num_of_features, 240 columns=num_of_datapoints
+	var past_temperature_data = array_object[0].temperature_2m;
 
-	// -------------------------------------------------
-		
-	// X matrix should be shape [num_of_datapoints, num_of_features], but I am going to leave it.
+	// Flatten to an array
 
-	// -------------------------------------------------
-
-	// Calculate [batch_size, timestep, num_of_features] to separate X and Y
-	// var timesteps = 6;  // will need to put in timesteps=5 into the model, since we use the 6th one to assign to Y
-	// OR
-	var timesteps = 12; // Try a longer window such that the LSTM has more past data to train on, for a more accurate result
-	console.log('timesteps: ', timesteps);
 	
-	var num_of_features = xs_2d_arr.length;  // num_of_features_OR_colnum
-	console.log('num_of_features: ', num_of_features);
-
-	var batch_size = Math.floor(xs_2d_arr[0].length / timesteps);
-	console.log('batch_size: ', batch_size);
-	
-	// -------------------------------------------------
-	
-	var xs_3d_train = [];
-	var ys_2d_train = [];
-	var xs_3d_test = [];
-
-	var batch_size_test = 0;
-	
-	for (var feats=0; feats<num_of_features; feats++) {
-		// for the organization, features are rows
-		var temp_datappoints_arr = xs_2d_arr.at(feats);
-
-		// cut temp_datappoints_arr into X and Y, every timesteps
-		var x_temp = [];
-		var y_temp = [];
-		var x_temp_test = [];
-		
-		for (var num_of_desired_predictions=0; num_of_desired_predictions<batch_size; num_of_desired_predictions++) {
-			var st = num_of_desired_predictions * timesteps;
-			var stop = st + timesteps;
-			
-			if (num_of_desired_predictions == batch_size-1) {
-				// Test data set
-				x_temp_test.push(temp_datappoints_arr.slice(st, stop-1));
-				batch_size_test = batch_size_test + 1;
-			} else {
-				// Train data set
-				x_temp.push(temp_datappoints_arr.slice(st, stop-1));
-				y_temp.push(temp_datappoints_arr.at(stop));
-			}
-		}
-		xs_3d_train.push(x_temp);
-		ys_2d_train.push(y_temp);
-		xs_3d_test.push(x_temp_test);
-	}
-	
-	// Train shape1
-	shap = await shape(xs_3d_train);  
-	console.log('Shape xs_3d_train: ', shap);  // [num_of_features, batch_size, timesteps] = [ 1, 39, 5 ]
-
-	shap = await shape(ys_2d_train);
-	console.log('Shape ys_2d_train: ', shap); // [num_of_features, batch_size] = [ 1, 39 ]
-
-	// -------------------------------------------------
-
-	// Test shape1
-	shap = await shape(xs_3d_test);  
-	console.log('Shape xs_3d_test: ', shap);  // [num_of_features, batch_size, timesteps] = [ 1, 39, 5 ]
-
-	// -------------------------------------------------
-
-	// Update timesteps, timesteps should be 1 less due to assigning the last datapoint to Y.
-	timesteps = timesteps - 1;
-	console.log('timesteps: ', timesteps);
-
-	// 1 less to account for the x_test data set, the x_test dataset is removed to test the next hourly temperature prediction
-	batch_size = batch_size - 1;
-	console.log('batch_size: ', batch_size);
-	
-	// -------------------------------------------------
-	
-	// Put X_3d_test_shape1 [num_of_features, batch_size, timesteps]=[0,1,2] into [batch_size, timesteps, num_of_features]=[1,2,0]
-	
-	var xs_3d_arr = await exchange_3d_dimensions(xs_3d_train, [1,2,0]);
-
-	// Train shape
-	shap = await shape(xs_3d_arr);  
-	console.log('Shape xs_3d_arr: ', shap);
-
-	xs_3d_arr = await tf.tensor(xs_3d_arr);
-	console.log('Tensorflow tensor (X train) - xs_3d_arr: ', xs_3d_arr);
-	
-	// -------------------------------------------------
-
-	console.log('batch_size_test: ', batch_size_test);
-	
-	var xs_test_3d_arr = await exchange_3d_dimensions(xs_3d_test, [1,2,0]);
-
-	// Test shape - [ batch_size=1, timesteps, 1 ]
-	shap = await shape(xs_test_3d_arr);  
-	console.log('Shape xs_test_3d_arr: ', shap);
-
-	xs_test_3d_arr = await tf.tensor(xs_test_3d_arr);
-	console.log('Tensorflow tensor (X test) - xs_test_3d_arr: ', xs_test_3d_arr);
-	
-	// -------------------------------------------------
-	
-	// Assign Y to a 1D tensor
-	console.log('ys_2d_train: ', ys_2d_train);	// [num_of_features, batch_size] = [ 1, 39 ]
-
-	// If ys_2d_train is shape [num_of_features, batch_size] : target expected a batch of elements where each example has shape [1] (i.e.,tensor shape [*,1]) but the target received an input with 1 examples, each with shape [39] (tensor shape [1,39])
-
-	// So, need to stack [batch_size] per [feature]
-	var ys_1d_arr = [];
-	for (var i=0; i<num_of_features; i++) { ys_1d_arr = ys_1d_arr.concat(ys_2d_train[i]); }
-	
-	ys_1d_arr = await tf.tensor(ys_1d_arr);
-	console.log('Tensorflow tensor (Y train) - ys_1d_arr: ', ys_1d_arr);
-	
-	// Test shape
-	shap = await shape(ys_1d_arr);  
-	console.log('Shape ys_1d_arr: ', shap);
-	
-	// -----------------------------------------------
-	
-	// Predict future data points
-	var model_type = document.getElementById("model_type").value;
-
-	if (model_type == 'LSTM') {
-
-		var num_of_outputs = 1; // a value from 1 to timesteps, or the number of data points to predict into the future
-
-		// ------------------------
-
-		const case_num = 1;
-		
-		var n_a = timesteps;
-		var lstmModel = [];
-
-		if (case_num == 0) {
-
-			// Case 0: predictions for all the data points in the timestep per batch (most basic model)
-			const input = tf.input({shape: [timesteps, num_of_features]});
-			console.log(JSON.stringify(input.shape));  // [null, timesteps, num_of_features]
-			
-			const lstm = tf.layers.lstm({
-				units: n_a,
-				returnSequences: true,
-				returnState: false,
-				kernelInitializer: 'heNormal'
-			});
-			console.log(JSON.stringify(lstm.apply(input).shape)); // [null, n_a]
-	
-			const denseLayer1 = tf.layers.dense({units: num_of_outputs, activation: 'relu'});
-			const output = denseLayer1.apply(lstm.apply(input));
-			console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [null, num_of_features]
-			
-			lstmModel = await tf.model({inputs: input, outputs: output});
-			
-		} else if (case_num == 1) {
-			
-			// Case 1: one data point prediction at the end of the timestep per batch (most basic model)
-			const input = tf.input({shape: [timesteps, num_of_features]});
-			console.log(JSON.stringify(input.shape));  // [null,5,1]
-			
-			const lstm = tf.layers.lstm({
-				units: n_a,
-				returnSequences: false,
-				returnState: false,
-				kernelInitializer: 'heNormal'
-			});
-			console.log(JSON.stringify(lstm.apply(input).shape)); // [null,5]
-	
-			// const denseLayer1 = tf.layers.dense({units: num_of_outputs, activation: 'linear'}); // returns an output from 0 to 1
-			const denseLayer1 = tf.layers.dense({units: num_of_outputs, activation: 'relu'});
-			const output = denseLayer1.apply(lstm.apply(input));
-			console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [null,1]
-			
-			lstmModel = await tf.model({inputs: input, outputs: output});
-
-		} else if (case_num == 2) {
-			
-			// Case 2: Classification prediction of timeseries class - one data point prediction at the end of the timestep per batch
-			var num_of_classes = 2;  // 2 or more
-			const lstm = tf.layers.lstm({units: n_a, returnSequences: false});
-			const denseLayer1 = tf.layers.dense({units: num_of_classes, activation: 'softmax'});
-			const output = denseLayer1.apply(lstm.apply(input));
-			console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
-			lstmModel = await tf.model({inputs: input, outputs: output});
-		}
-
-		// console.log('lstmModel: ', lstmModel);
-		
-		// ------------------------
-		
-		// When returnState: true
-		// Layer dense_Dense1 expects 1 inputs, but it received 3 input tensors. Input received: [object Object],[object Object],[object Object]
-
-		// When returnSequences: true
-		// Error: Error when checking target: expected dense_Dense1 to have 3 dimension(s). but got array with shape 19,1
-		
-		// ------------------------
-		
-		await lstmModel.compile({optimizer: tf.train.adam(), loss: tf.losses.meanSquaredError, metrics: ['mse'],});
-
-		// ------------------------
-
-		const epochs = 400;
-		const history = await lstmModel.fit(xs_3d_arr, ys_1d_arr, { 
-					batchSize: batch_size, 
-					epochs: epochs, 
-					callbacks: { onEpochEnd: async (epoch, logs) => { 
-						if (epoch % 50 == 0) { 
-							document.getElementById("progress_bar").display.style = "block";
-							document.getElementById("progress_bar").value = epoch/epochs;
-							console.log('epoch: ', epoch); 
-						} 
-						// console.log('logs: ', logs); 
-					}} 
-				})
-			.then(async function() { document.getElementById("progress_bar").display.style = "none"; });
-		console.log('history: ', history);
-
-		// ------------------------
-		// Print prediction from LSTM model
-		// ------------------------
-
-		// Forecasting loop
-		const num_of_predictions = 2;
-		var preds = [];
-		for (var loop=0; loop<num_of_predictions; loop++) {
-			
-			// Evaluation of prediction with respect to the model
-			var result = lstmModel.predict( xs_test_3d_arr ); // []
-			// console.log('result : ', result);
-
-			// ------------------------
-
-			// Obtain prediction output from model
-			// const output_value0 = await result.data();
-			// console.log('output_value0 : ', output_value0);
-			// OR
-			var output_value = result.dataSync();  
-			// console.log('output_value : ', output_value);
-
-			// ------------------------
-			
-			preds.push(output_value);
-
-			// ------------------------
-
-			// Reassign xs_test_3d_arr
-			var xs_test_flat = tf.util.flatten(xs_test_3d_arr);
-			console.log('xs_test_flat: ', xs_test_flat);
-			
-			var data_point_shift_between_X_and_Y = 1;
-		
-			var repeated_last_value = await Array.from({length: data_point_shift_between_X_and_Y}, (val, ind) => { return xs_test_flat.at(xs_test_flat.length-1); });
-		
-			var xs_test_1d_arr = xs_test_flat.slice(data_point_shift_between_X_and_Y, xs_test_flat.length).concat(repeated_last_value);
-
-			// ------------------------
-			
-			// Add 0th dimension
-			var xs_test_2d_arr = tf.expandDims(xs_test_1d_arr, 0);
-
-			// Test shape - [ batch_size=1, timesteps, 1 ]
-			shap = await shape(xs_test_2d_arr);  
-			console.log('Shape xs_test_2d_arr: ', shap);
-
-			// ------------------------
-
-			// Add 2nd dimension
-			xs_test_3d_arr = tf.expandDims(xs_test_2d_arr, 2);
-			
-			// Test shape - [ batch_size=1, timesteps, 1 ]
-			shap = await shape(xs_test_3d_arr);  
-			console.log('Shape xs_test_3d_arr: ', shap);
-
-			// ------------------------
-		}
-		
-		console.log('preds : ', preds);
-		
-		// ------------------------
-
-		document.getElementById('notification').innerHTML = "LSTM model prediction: " + preds + ".  ";
-		
-		// ------------------------
-		
-	} else if (model_type == 'Forecasting') {
-		
-		// Regression is a one-to-one mapping of x corresponding to y.
-		// So construct ys by shifting xs to the right to predict the next time point
-
-		// xs_2d_arr Array: 1 row=num_of_features, 240 columns=num_of_datapoints
-
-		// ------------------------
-		
-		// transpose xs_2d_arr [num_of_features, num_of_datapoints] to obtain shape [num_of_datapoints, num_of_features]
-		xs_2d_arr = await transpose_2d_array(xs_2d_arr);
-
-		// ------------------------
-
-		shap = await shape(xs_2d_arr);  
-		console.log('Shape xs_2d_arr: ', shap);
-		
-		// ------------------------
-
-		var num_of_datapoints = shap[0];
-
-		// ------------------------
-		
-		var xs_flat = [];
-		for (var i=0; i<num_of_datapoints; i++) {
-			for (var j=0; j<num_of_features; j++) {
-				xs_flat.push(xs_2d_arr[i][j]);
-			}
-		}
-		console.log('xs_flat: ', xs_flat);
-    
-		shap = await shape(xs_flat);  
-		console.log('Shape xs_flat: ', shap);
-
-		// ------------------------
-		
-		var data_point_shift_between_X_and_Y = 1;
-		
-		var repeated_last_value = await Array.from({length: data_point_shift_between_X_and_Y}, (val, ind) => { return xs_flat.at(xs_flat.length-1); });
-		
-		var ys_1d_arr = xs_flat.slice(data_point_shift_between_X_and_Y, xs_flat.length).concat(repeated_last_value);
-
-		shap = await shape(ys_1d_arr);  
-		console.log('Shape ys_1d_arr: ', shap);
-
-		// ------------------------
-
-		// Make xs_2d_arr a tensor
-		xs_2d_arr = await tf.tensor(xs_2d_arr);
-		
-		// Make ys_1d_arr a tensor
-		ys_1d_arr = await tf.tensor(ys_1d_arr);
-		
-		// ------------------------
-		
-		const num_of_outputs = 1;
-
-		// Regression model
-		const input = tf.input({shape: [num_of_features]}); 
-		const denseLayer1 = tf.layers.dense({units: 64, activation: 'relu'});
-		const denseLayer2 = tf.layers.dense({units: 64, activation: 'relu'});
-		const denseLayer3 = tf.layers.dense({units: 64, activation: 'relu'});
-		const denseLayer4 = tf.layers.dense({units: num_of_outputs});  
-		const output = denseLayer4.apply(denseLayer3.apply(denseLayer2.apply(denseLayer1.apply(input))));
-		const Regmodel = tf.model({inputs: input, outputs: output});
-
-		console.log('Regmodel: ', Regmodel);
-
-		await Regmodel.compile({optimizer: tf.train.adam(), loss: tf.losses.meanSquaredError, metrics: ['mse'],});
-
-		// ------------------------
-
-		const batchSize = 1;
-		const epochs = 200;
-		const history = await Regmodel.fit(xs_2d_arr, ys_1d_arr, { 
-					batchSize: batchSize, 
-					epochs: epochs, 
-					callbacks: { onEpochEnd: async (epoch, logs) => { 
-						if (epoch % 50 == 0) { 
-							document.getElementById("progress_bar").display.style = "block";
-							document.getElementById("progress_bar").value = epoch/epochs;
-							console.log('epoch: ', epoch); 
-						}
-						// console.log('logs: ', logs); 
-					}} 
-				})
-			.then(async function() { document.getElementById("progress_bar").display.style = "none"; });
-		console.log('history: ', history);
-
-		// ------------------------
-		// Print prediction
-		// ------------------------
-		var test_data = xs_flat.slice(xs_flat.length-1-batchSize, xs_flat.length-1);
-		console.log('test_data: ', test_data);
-		
-		const xs_test_3d_arr_reg = await tf.reshape(test_data, [batchSize, num_of_features]);
-		// needs to be shaped into [num_of_datapoints=batchSize, num_of_features=1]
-		
-		// Evaluation of prediction with respect to the model
-		const result = Regmodel.predict( xs_test_3d_arr_reg );
-		console.log('result : ', result);
-
-		// ------------------------
-
-		const output_value0 = await result.data();
-		console.log('output_value0 : ', output_value0);
-		
-		const output_value = result.dataSync();  
-		console.log('output_value : ', output_value);
-
-		// ------------------------
-
-		document.getElementById('notification').innerHTML = "Regression model prediction: " + output_value + ".  ";
-		
-		// ------------------------
-		
-		
-	} else if (model_type == 'Transformer_based') {
-		document.getElementById('notification').innerHTML = "model_type In progress.";
-
-		// Step 0: Load a pretrained model 
-		// https://js.tensorflow.org/api/latest/#loadLayersModel
-		// const pretrained_model = await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/savedmodel/tsmixer/model.json');
-		// pretrained_model.summary();
-
-		// Step 1: Find the desired layer and freeze layers or not
-		// pretrained_model.layers.trainable = false;
-
-		// Obtain a layer from the pretrained model
-
-		
-	} else {
-		document.getElementById('notification').innerHTML = "Please select a model type for timeseries prediction."; 
-	}
-	
-	// -----------------------------------------------
 
 	// Print the [first datapoint of] 24 hour predictions from the site
-	var predictions = array_object[1].temperature_2m.at(0);
+	var predicted_24hour_temperature_data = array_object[1].temperature_2m.at(0);
 	document.getElementById('notification').innerHTML += "Site prediction: " + predictions;
-	
+
 	// -----------------------------------------------
+
+	await plotly_line_chart(t1, x_avg, "Timeseries: temperature per hour", "Time (hour)", "Temperature (Celsius)");
+
+	// -----------------------------------------------
+}
+
+
 	
+async function predict() {
+
+	if (array_object.length == 0) {
+		document.getElementById('notification').innerHTML = "Please select a timeseries data source and View the data.";
+	} else {
+
+			
+			
+		// -----------------------------------------------
+		// Time series prediction, like regression, is different than classification because [Y is composed of X]. 
+		// One needs to separate Y from X, using the [batch_size, timestep, num_of_features] organizaton, then restack X.
+		// -----------------------------------------------
+	
+		// Prepare the X matrix
+	
+		// open_meteo_past_data:
+		var xs_2d_arr = [array_object[0].temperature_2m];
+		console.log('xs_2d_arr: ', xs_2d_arr);
+		
+		var shap = await shape(xs_2d_arr);
+		console.log('Shape xs_2d_arr: ', shap);
+		// Array: 1 row=num_of_features, 240 columns=num_of_datapoints
+	
+		// -------------------------------------------------
+			
+		// X matrix should be shape [num_of_datapoints, num_of_features], but I am going to leave it.
+	
+		// -------------------------------------------------
+	
+		// Calculate [batch_size, timestep, num_of_features] to separate X and Y
+		// var timesteps = 6;  // will need to put in timesteps=5 into the model, since we use the 6th one to assign to Y
+		// OR
+		var timesteps = 12; // Try a longer window such that the LSTM has more past data to train on, for a more accurate result
+		console.log('timesteps: ', timesteps);
+		
+		var num_of_features = xs_2d_arr.length;  // num_of_features_OR_colnum
+		console.log('num_of_features: ', num_of_features);
+	
+		var batch_size = Math.floor(xs_2d_arr[0].length / timesteps);
+		console.log('batch_size: ', batch_size);
+		
+		// -------------------------------------------------
+		
+		var xs_3d_train = [];
+		var ys_2d_train = [];
+		var xs_3d_test = [];
+	
+		var batch_size_test = 0;
+		
+		for (var feats=0; feats<num_of_features; feats++) {
+			// for the organization, features are rows
+			var temp_datappoints_arr = xs_2d_arr.at(feats);
+	
+			// cut temp_datappoints_arr into X and Y, every timesteps
+			var x_temp = [];
+			var y_temp = [];
+			var x_temp_test = [];
+			
+			for (var num_of_desired_predictions=0; num_of_desired_predictions<batch_size; num_of_desired_predictions++) {
+				var st = num_of_desired_predictions * timesteps;
+				var stop = st + timesteps;
+				
+				if (num_of_desired_predictions == batch_size-1) {
+					// Test data set
+					x_temp_test.push(temp_datappoints_arr.slice(st, stop-1));
+					batch_size_test = batch_size_test + 1;
+				} else {
+					// Train data set
+					x_temp.push(temp_datappoints_arr.slice(st, stop-1));
+					y_temp.push(temp_datappoints_arr.at(stop));
+				}
+			}
+			xs_3d_train.push(x_temp);
+			ys_2d_train.push(y_temp);
+			xs_3d_test.push(x_temp_test);
+		}
+		
+		// Train shape1
+		shap = await shape(xs_3d_train);  
+		console.log('Shape xs_3d_train: ', shap);  // [num_of_features, batch_size, timesteps] = [ 1, 39, 5 ]
+	
+		shap = await shape(ys_2d_train);
+		console.log('Shape ys_2d_train: ', shap); // [num_of_features, batch_size] = [ 1, 39 ]
+	
+		// -------------------------------------------------
+	
+		// Test shape1
+		shap = await shape(xs_3d_test);  
+		console.log('Shape xs_3d_test: ', shap);  // [num_of_features, batch_size, timesteps] = [ 1, 39, 5 ]
+	
+		// -------------------------------------------------
+	
+		// Update timesteps, timesteps should be 1 less due to assigning the last datapoint to Y.
+		timesteps = timesteps - 1;
+		console.log('timesteps: ', timesteps);
+	
+		// 1 less to account for the x_test data set, the x_test dataset is removed to test the next hourly temperature prediction
+		batch_size = batch_size - 1;
+		console.log('batch_size: ', batch_size);
+		
+		// -------------------------------------------------
+		
+		// Put X_3d_test_shape1 [num_of_features, batch_size, timesteps]=[0,1,2] into [batch_size, timesteps, num_of_features]=[1,2,0]
+		
+		var xs_3d_arr = await exchange_3d_dimensions(xs_3d_train, [1,2,0]);
+	
+		// Train shape
+		shap = await shape(xs_3d_arr);  
+		console.log('Shape xs_3d_arr: ', shap);
+	
+		xs_3d_arr = await tf.tensor(xs_3d_arr);
+		console.log('Tensorflow tensor (X train) - xs_3d_arr: ', xs_3d_arr);
+		
+		// -------------------------------------------------
+	
+		console.log('batch_size_test: ', batch_size_test);
+		
+		var xs_test_3d_arr = await exchange_3d_dimensions(xs_3d_test, [1,2,0]);
+	
+		// Test shape - [ batch_size=1, timesteps, 1 ]
+		shap = await shape(xs_test_3d_arr);  
+		console.log('Shape xs_test_3d_arr: ', shap);
+	
+		xs_test_3d_arr = await tf.tensor(xs_test_3d_arr);
+		console.log('Tensorflow tensor (X test) - xs_test_3d_arr: ', xs_test_3d_arr);
+		
+		// -------------------------------------------------
+		
+		// Assign Y to a 1D tensor
+		console.log('ys_2d_train: ', ys_2d_train);	// [num_of_features, batch_size] = [ 1, 39 ]
+	
+		// So, need to stack [batch_size] per [feature]
+		var ys_1d_arr = [];
+		for (var i=0; i<num_of_features; i++) { ys_1d_arr = ys_1d_arr.concat(ys_2d_train[i]); }
+		
+		ys_1d_arr = await tf.tensor(ys_1d_arr);
+		console.log('Tensorflow tensor (Y train) - ys_1d_arr: ', ys_1d_arr);
+		
+		// Test shape
+		shap = await shape(ys_1d_arr);  
+		console.log('Shape ys_1d_arr: ', shap);
+		
+		// -----------------------------------------------
+		
+		// Predict future data points
+		var model_type = document.getElementById("model_type").value;
+	
+		if (model_type == 'LSTM') {
+	
+			var num_of_outputs = 1; // a value from 1 to timesteps, or the number of data points to predict into the future
+	
+			// ------------------------
+	
+			const case_num = 1;
+			
+			var n_a = timesteps;
+			var lstmModel = [];
+	
+			if (case_num == 0) {
+	
+				// Case 0: predictions for all the data points in the timestep per batch (most basic model)
+				const input = tf.input({shape: [timesteps, num_of_features]});
+				console.log(JSON.stringify(input.shape));  // [null, timesteps, num_of_features]
+				
+				const lstm = tf.layers.lstm({
+					units: n_a,
+					returnSequences: true,
+					returnState: false,
+					kernelInitializer: 'heNormal'
+				});
+				console.log(JSON.stringify(lstm.apply(input).shape)); // [null, n_a]
+		
+				const denseLayer1 = tf.layers.dense({units: num_of_outputs, activation: 'relu'});
+				const output = denseLayer1.apply(lstm.apply(input));
+				console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [null, num_of_features]
+				
+				lstmModel = await tf.model({inputs: input, outputs: output});
+				
+			} else if (case_num == 1) {
+				
+				// Case 1: one data point prediction at the end of the timestep per batch (most basic model)
+				const input = tf.input({shape: [timesteps, num_of_features]});
+				console.log(JSON.stringify(input.shape));  // [null,5,1]
+				
+				const lstm = tf.layers.lstm({
+					units: n_a,
+					returnSequences: false,
+					returnState: false,
+					kernelInitializer: 'heNormal'
+				});
+				console.log(JSON.stringify(lstm.apply(input).shape)); // [null,5]
+		
+				// const denseLayer1 = tf.layers.dense({units: num_of_outputs, activation: 'linear'}); // returns an output from 0 to 1
+				const denseLayer1 = tf.layers.dense({units: num_of_outputs, activation: 'relu'});
+				const output = denseLayer1.apply(lstm.apply(input));
+				console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [null,1]
+				
+				lstmModel = await tf.model({inputs: input, outputs: output});
+	
+			} else if (case_num == 2) {
+				
+				// Case 2: Classification prediction of timeseries class - one data point prediction at the end of the timestep per batch
+				var num_of_classes = 2;  // 2 or more
+				const lstm = tf.layers.lstm({units: n_a, returnSequences: false});
+				const denseLayer1 = tf.layers.dense({units: num_of_classes, activation: 'softmax'});
+				const output = denseLayer1.apply(lstm.apply(input));
+				console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
+				lstmModel = await tf.model({inputs: input, outputs: output});
+			}
+	
+			// console.log('lstmModel: ', lstmModel);
+			
+			// ------------------------
+			
+			// When returnState: true
+			// Layer dense_Dense1 expects 1 inputs, but it received 3 input tensors. Input received: [object Object],[object Object],[object Object]
+	
+			// When returnSequences: true
+			// Error: Error when checking target: expected dense_Dense1 to have 3 dimension(s). but got array with shape 19,1
+			
+			// ------------------------
+			
+			await lstmModel.compile({optimizer: tf.train.adam(), loss: tf.losses.meanSquaredError, metrics: ['mse'],});
+	
+			// ------------------------
+	
+			const epochs = 400;
+			const history = await lstmModel.fit(xs_3d_arr, ys_1d_arr, { 
+						batchSize: batch_size, 
+						epochs: epochs, 
+						callbacks: { onEpochEnd: async (epoch, logs) => { 
+							if (epoch % 50 == 0) { 
+								document.getElementById("progress_bar").display.style = "block";
+								document.getElementById("progress_bar").value = epoch/epochs;
+								console.log('epoch: ', epoch); 
+							} 
+							// console.log('logs: ', logs); 
+						}} 
+					})
+				.then(async function() { document.getElementById("progress_bar").display.style = "none"; });
+			console.log('history: ', history);
+	
+			// ------------------------
+			// Print prediction from LSTM model
+			// ------------------------
+	
+			// Forecasting loop
+			const num_of_predictions = 2;
+			var preds = [];
+			for (var loop=0; loop<num_of_predictions; loop++) {
+				
+				// Evaluation of prediction with respect to the model
+				var result = lstmModel.predict( xs_test_3d_arr ); // []
+				// console.log('result : ', result);
+	
+				// ------------------------
+	
+				// Obtain prediction output from model
+				// const output_value0 = await result.data();
+				// console.log('output_value0 : ', output_value0);
+				// OR
+				var output_value = result.dataSync();  
+				// console.log('output_value : ', output_value);
+	
+				// ------------------------
+				
+				preds.push(output_value);
+	
+				// ------------------------
+	
+				// Reassign xs_test_3d_arr
+				var xs_test_flat = tf.util.flatten(xs_test_3d_arr);
+				console.log('xs_test_flat: ', xs_test_flat);
+				
+				var data_point_shift_between_X_and_Y = 1;
+			
+				var repeated_last_value = await Array.from({length: data_point_shift_between_X_and_Y}, (val, ind) => { return xs_test_flat.at(xs_test_flat.length-1); });
+			
+				var xs_test_1d_arr = xs_test_flat.slice(data_point_shift_between_X_and_Y, xs_test_flat.length).concat(repeated_last_value);
+	
+				// ------------------------
+				
+				// Add 0th dimension
+				var xs_test_2d_arr = tf.expandDims(xs_test_1d_arr, 0);
+	
+				// Test shape - [ batch_size=1, timesteps, 1 ]
+				shap = await shape(xs_test_2d_arr);  
+				console.log('Shape xs_test_2d_arr: ', shap);
+	
+				// ------------------------
+	
+				// Add 2nd dimension
+				xs_test_3d_arr = tf.expandDims(xs_test_2d_arr, 2);
+				
+				// Test shape - [ batch_size=1, timesteps, 1 ]
+				shap = await shape(xs_test_3d_arr);  
+				console.log('Shape xs_test_3d_arr: ', shap);
+	
+				// ------------------------
+			}
+			
+			console.log('preds : ', preds);
+			
+			// ------------------------
+	
+			document.getElementById('notification').innerHTML = "LSTM model prediction: " + preds + ".  ";
+			
+			// ------------------------
+			
+		} else if (model_type == 'Forecasting') {
+			
+			// Regression is a one-to-one mapping of x corresponding to y.
+			// So construct ys by shifting xs to the right to predict the next time point
+	
+			// xs_2d_arr Array: 1 row=num_of_features, 240 columns=num_of_datapoints
+	
+			// ------------------------
+			
+			// transpose xs_2d_arr [num_of_features, num_of_datapoints] to obtain shape [num_of_datapoints, num_of_features]
+			xs_2d_arr = await transpose_2d_array(xs_2d_arr);
+	
+			// ------------------------
+	
+			shap = await shape(xs_2d_arr);  
+			console.log('Shape xs_2d_arr: ', shap);
+			
+			// ------------------------
+	
+			var num_of_datapoints = shap[0];
+	
+			// ------------------------
+			
+			var xs_flat = [];
+			for (var i=0; i<num_of_datapoints; i++) {
+				for (var j=0; j<num_of_features; j++) {
+					xs_flat.push(xs_2d_arr[i][j]);
+				}
+			}
+			console.log('xs_flat: ', xs_flat);
+	    
+			shap = await shape(xs_flat);  
+			console.log('Shape xs_flat: ', shap);
+	
+			// ------------------------
+			
+			var data_point_shift_between_X_and_Y = 1;
+			
+			var repeated_last_value = await Array.from({length: data_point_shift_between_X_and_Y}, (val, ind) => { return xs_flat.at(xs_flat.length-1); });
+			
+			var ys_1d_arr = xs_flat.slice(data_point_shift_between_X_and_Y, xs_flat.length).concat(repeated_last_value);
+	
+			shap = await shape(ys_1d_arr);  
+			console.log('Shape ys_1d_arr: ', shap);
+	
+			// ------------------------
+	
+			// Make xs_2d_arr a tensor
+			xs_2d_arr = await tf.tensor(xs_2d_arr);
+			
+			// Make ys_1d_arr a tensor
+			ys_1d_arr = await tf.tensor(ys_1d_arr);
+			
+			// ------------------------
+			
+			const num_of_outputs = 1;
+	
+			// Regression model
+			const input = tf.input({shape: [num_of_features]}); 
+			const denseLayer1 = tf.layers.dense({units: 64, activation: 'relu'});
+			const denseLayer2 = tf.layers.dense({units: 64, activation: 'relu'});
+			const denseLayer3 = tf.layers.dense({units: 64, activation: 'relu'});
+			const denseLayer4 = tf.layers.dense({units: num_of_outputs});  
+			const output = denseLayer4.apply(denseLayer3.apply(denseLayer2.apply(denseLayer1.apply(input))));
+			const Regmodel = tf.model({inputs: input, outputs: output});
+	
+			console.log('Regmodel: ', Regmodel);
+	
+			await Regmodel.compile({optimizer: tf.train.adam(), loss: tf.losses.meanSquaredError, metrics: ['mse'],});
+	
+			// ------------------------
+	
+			const batchSize = 1;
+			const epochs = 200;
+			const history = await Regmodel.fit(xs_2d_arr, ys_1d_arr, { 
+						batchSize: batchSize, 
+						epochs: epochs, 
+						callbacks: { onEpochEnd: async (epoch, logs) => { 
+							if (epoch % 50 == 0) { 
+								document.getElementById("progress_bar").display.style = "block";
+								document.getElementById("progress_bar").value = epoch/epochs;
+								console.log('epoch: ', epoch); 
+							}
+							// console.log('logs: ', logs); 
+						}} 
+					})
+				.then(async function() { document.getElementById("progress_bar").display.style = "none"; });
+			console.log('history: ', history);
+	
+			// ------------------------
+			// Print prediction
+			// ------------------------
+			var test_data = xs_flat.slice(xs_flat.length-1-batchSize, xs_flat.length-1);
+			console.log('test_data: ', test_data);
+			
+			const xs_test_3d_arr_reg = await tf.reshape(test_data, [batchSize, num_of_features]);
+			// needs to be shaped into [num_of_datapoints=batchSize, num_of_features=1]
+			
+			// Evaluation of prediction with respect to the model
+			const result = Regmodel.predict( xs_test_3d_arr_reg );
+			console.log('result : ', result);
+	
+			// ------------------------
+	
+			const output_value0 = await result.data();
+			console.log('output_value0 : ', output_value0);
+			
+			const output_value = result.dataSync();  
+			console.log('output_value : ', output_value);
+	
+			// ------------------------
+	
+			document.getElementById('notification').innerHTML = "Regression model prediction: " + output_value + ".  ";
+			
+			// ------------------------
+			
+			
+		} else if (model_type == 'Transformer_based') {
+			document.getElementById('notification').innerHTML = "model_type In progress.";
+	
+			// Step 0: Load a pretrained model 
+			// https://js.tensorflow.org/api/latest/#loadLayersModel
+			// const pretrained_model = await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/savedmodel/tsmixer/model.json');
+			// pretrained_model.summary();
+	
+			// Step 1: Find the desired layer and freeze layers or not
+			// pretrained_model.layers.trainable = false;
+	
+			// Obtain a layer from the pretrained model
+	
+			
+		} else {
+			document.getElementById('notification').innerHTML = "Please select a model type for timeseries prediction."; 
+		}
+		
+		// -----------------------------------------------
+	
+		// Print the [first datapoint of] 24 hour predictions from the site
+		var predictions = array_object[1].temperature_2m.at(0);
+		document.getElementById('notification').innerHTML += "Site prediction: " + predictions;
+		
+		// -----------------------------------------------
+	}
 }
 	
 // -----------------------------------------------
@@ -574,6 +637,11 @@ async function view_fetched_data() {
 // -----------------------------------------------
 // SUBFUNCTIONS
 // -----------------------------------------------
+
+
+
+// -----------------------------------------------
+
 async function recur_func(arr) {
 	if (arr != undefined) {
 		return [arr[0], arr.length];
