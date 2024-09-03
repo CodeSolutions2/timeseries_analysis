@@ -257,7 +257,7 @@ async function view_fetched_data() {
 		
 		const lstm = tf.layers.lstm({
 			units: n_a,
-			returnSequences: true,
+			returnSequences: false,
 			returnState: false,
 			kernelInitializer: 'heNormal'
 		});
@@ -390,7 +390,7 @@ async function view_fetched_data() {
 
 		// ------------------------
 
-		const batchSize = 6;
+		const batchSize = 1;
 		
 		const history = await Regmodel.fit(xs_2d_arr, ys_1d_arr, { 
 					batchSize: batchSize, 
