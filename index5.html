@@ -131,7 +131,8 @@ async function view_fetched_data() {
 	// -------------------------------------------------
 
 	// Calculate [batch_size, timestep, num_of_features] to separate X and Y
-	var timesteps = 6;  // will need to put in timesteps=5 into the model, since we use the 6th one to assign to Y
+	// var timesteps = 6;  // will need to put in timesteps=5 into the model, since we use the 6th one to assign to Y
+	var timesteps = 12;
 	console.log('timesteps: ', timesteps);
 	
 	var num_of_features = xs_2d_arr.length;  // num_of_features_OR_colnum
@@ -203,12 +204,6 @@ async function view_fetched_data() {
 	
 	// Put X_3d_test_shape1 [num_of_features, batch_size, timesteps]=[0,1,2] into [batch_size, timesteps, num_of_features]=[1,2,0]
 	
-  	// Way 0: using tensorflow.js
-	// const x2d = await tf.tensor(X_2d_shape1);
-	// const xs_3d_arr0 = await tf.reshape(X_3d_shape1, [num_of_features, batch_size, timesteps]);
-	// const xs_3d_arr = await tf.reshape(xs_3d_arr0, [batch_size, timesteps, num_of_features]);
-
-  	// Way 1
 	var xs_3d_arr = await exchange_3d_dimensions(xs_3d_train, [1,2,0]);
 
 	// Train shape
@@ -240,14 +235,11 @@ async function view_fetched_data() {
 
 	// So, need to stack [batch_size] per [feature]
 	var ys_1d_arr = [];
-	for (var i=0; i<num_of_features; i++) {
-		ys_1d_arr = ys_1d_arr.concat(ys_2d_train[i]);
-	}
+	for (var i=0; i<num_of_features; i++) { ys_1d_arr = ys_1d_arr.concat(ys_2d_train[i]); }
 	
 	ys_1d_arr = await tf.tensor(ys_1d_arr);
 	console.log('Tensorflow tensor (Y train) - ys_1d_arr: ', ys_1d_arr);
 	
-
 	// Test shape
 	shap = await shape(ys_1d_arr);  
 	console.log('Shape ys_1d_arr: ', shap);
@@ -266,7 +258,7 @@ async function view_fetched_data() {
 		
 		const lstm = tf.layers.lstm({
 			units: n_a,
-			returnSequences: false,
+			returnSequences: true,
 			returnState: false,
 			kernelInitializer: 'heNormal'
 		});
@@ -281,8 +273,7 @@ async function view_fetched_data() {
 		
 		// There should be one output every timesteps=5 for each batch_size=8 
 		// const denseLayer1 = tf.layers.dense({units: num_of_outputs, activation: 'linear'});
-		// const denseLayer1 = tf.layers.dense({units: num_of_outputs});
-		const denseLayer1 = tf.layers.dense({units: 1});
+		const denseLayer1 = tf.layers.dense({units: num_of_outputs});
 		
 		const output = denseLayer1.apply(lstm.apply(input));
 
@@ -319,20 +310,18 @@ async function view_fetched_data() {
 		const output_value0 = await result.data();
 		console.log('output_value0 : ', output_value0);
 		
-		const output_value = result.dataSync();  //[0];
+		const output_value = result.dataSync();  
 		console.log('output_value : ', output_value);
 
 		// ------------------------
 
-		document.getElementById('notification').innerHTML = "LSTM model prediction: " + output_value;
+		document.getElementById('notification').innerHTML = "LSTM model prediction: " + output_value + ".  ";
 		
 		// ------------------------
 		
 	} else if (model_type == 'Forecasting') {
-		document.getElementById('notification').innerHTML = "model_type In progress.";
-
-		// Regression is a one-to-one mapping of x corresponding to y, 
 		
+		// Regression is a one-to-one mapping of x corresponding to y.
 		// So construct ys by shifting xs to the right to predict the next time point
 
 		// xs_2d_arr Array: 1 row=num_of_features, 240 columns=num_of_datapoints
@@ -408,7 +397,7 @@ async function view_fetched_data() {
 					batchSize: batchSize, 
 					epochs: 200, 
 					callbacks: { onEpochEnd: async (epoch, logs) => { 
-						if (epoch % 10 == 0) { console.log('epoch: ', epoch); } 
+						if (epoch % 50 == 0) { console.log('epoch: ', epoch); } 
 						// console.log('logs: ', logs); 
 					}} 
 				});
@@ -417,7 +406,7 @@ async function view_fetched_data() {
 		// ------------------------
 		// Print prediction
 		// ------------------------
-		var test_data = xs_flat.slice(xs_flat.length-1-6, xs_flat.length-1);
+		var test_data = xs_flat.slice(xs_flat.length-1-batchSize, xs_flat.length-1);
 		console.log('test_data: ', test_data);
 		
 		const xs_test_3d_arr_reg = await tf.reshape(test_data, [batchSize, num_of_features]);
@@ -427,13 +416,17 @@ async function view_fetched_data() {
 		const result = Regmodel.predict( xs_test_3d_arr_reg );
 		console.log('result : ', result);
 
-		// const output_value = await result.data();
-		// console.log('output_value : ', output_value);
-		// OR
-		const output_value = result.dataSync()[0];
+		// ------------------------
+
+		const output_value0 = await result.data();
+		console.log('output_value0 : ', output_value0);
+		
+		const output_value = result.dataSync();  
 		console.log('output_value : ', output_value);
 
-		document.getElementById('notification').innerHTML = "Regression model prediction: " + output_value;
+		// ------------------------
+
+		document.getElementById('notification').innerHTML = "Regression model prediction: " + output_value + ".  ";
 		
 		// ------------------------
 		
