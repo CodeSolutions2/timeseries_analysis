@@ -386,7 +386,7 @@ async function predict() {
 				lstmModel = await tf.model({inputs: input, outputs: output});
 			}
 	
-			// console.log('lstmModel: ', lstmModel);
+			console.log('lstmModel: ', lstmModel);
 			
 			// ------------------------
 			
@@ -409,7 +409,7 @@ async function predict() {
 						callbacks: { onEpochEnd: async (epoch, logs) => { 
 							if (epoch % 50 == 0) { 
 								document.getElementById("progress_bar").style.display = "block";
-								document.getElementById("progress_bar").value = epoch/epochs;
+								document.getElementById("progress_bar").value = epoch/epochs*100;
 								console.log('epoch: ', epoch); 
 							} 
 							// console.log('logs: ', logs); 
@@ -423,9 +423,11 @@ async function predict() {
 			// ------------------------
 	
 			// Forecasting loop
-			const num_of_predictions = 2;
+			const num_of_predictions = 1;
 			var preds = [];
 			for (var loop=0; loop<num_of_predictions; loop++) {
+
+				console.log('xs_test_3d_arr: ', xs_test_3d_arr);
 				
 				// Evaluation of prediction with respect to the model
 				var result = lstmModel.predict( xs_test_3d_arr ); // []
@@ -447,32 +449,32 @@ async function predict() {
 				// ------------------------
 	
 				// Reassign xs_test_3d_arr
-				var xs_test_flat = tf.util.flatten(xs_test_3d_arr);
-				console.log('xs_test_flat: ', xs_test_flat);
+				// var xs_test_flat = xs_test_3d_arr.flat();
+				// console.log('xs_test_flat: ', xs_test_flat);
 				
-				var data_point_shift_between_X_and_Y = 1;
+				// var data_point_shift_between_X_and_Y = 1;
 			
-				var repeated_last_value = await Array.from({length: data_point_shift_between_X_and_Y}, (val, ind) => { return xs_test_flat.at(xs_test_flat.length-1); });
+				// var repeated_last_value = await Array.from({length: data_point_shift_between_X_and_Y}, (val, ind) => { return xs_test_flat.at(xs_test_flat.length-1); });
 			
-				var xs_test_1d_arr = xs_test_flat.slice(data_point_shift_between_X_and_Y, xs_test_flat.length).concat(repeated_last_value);
+				// var xs_test_1d_arr = xs_test_flat.slice(data_point_shift_between_X_and_Y, xs_test_flat.length).concat(repeated_last_value);
 	
 				// ------------------------
 				
 				// Add 0th dimension
-				var xs_test_2d_arr = tf.expandDims(xs_test_1d_arr, 0);
+				// var xs_test_2d_arr = tf.expandDims(xs_test_1d_arr, 0);
 	
 				// Test shape - [ batch_size=1, timesteps, 1 ]
-				shap = await shape(xs_test_2d_arr);  
-				console.log('Shape xs_test_2d_arr: ', shap);
+				// shap = await shape(xs_test_2d_arr);  
+				// console.log('Shape xs_test_2d_arr: ', shap);
 	
 				// ------------------------
 	
 				// Add 2nd dimension
-				xs_test_3d_arr = tf.expandDims(xs_test_2d_arr, 2);
+				// xs_test_3d_arr = tf.expandDims(xs_test_2d_arr, 2);
 				
 				// Test shape - [ batch_size=1, timesteps, 1 ]
-				shap = await shape(xs_test_3d_arr);  
-				console.log('Shape xs_test_3d_arr: ', shap);
+				// shap = await shape(xs_test_3d_arr);  
+				// console.log('Shape xs_test_3d_arr: ', shap);
 	
 				// ------------------------
 			}
