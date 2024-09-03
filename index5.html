@@ -156,14 +156,12 @@ async function view_fetched_data() {
 
 		// https://plotly.com/javascript/line-charts/
 		var title_text = "Timeseries: temperature per hour";
-		var x_text_trace1 = "Time (hour)";
-		var y_text_trace1 = "Past Temperature (Celsius)";
-		var x_text_trace2 = "Time (hour)";
-		var y_text_trace2 = "Predicted Temperature (Celsius)";
-		var trace1 = {x: t1, y: past_temperature_data, xaxis: x_text_trace1, yaxis: y_text_trace1, mode: 'lines+markers', type: 'line', name: 'Past temperature points'};
-		var trace2 = {x: t2, y: predicted_24hour_temperature_data, xaxis: x_text_trace2, yaxis: y_text_trace2, mode: 'lines+markers', type: 'line', name: 'Predicted temperature points'};
+		var x_text_trace1and2 = "Time (hour)";
+		var y_text_trace1and2 = "Temperature (Celsius)";
+		var trace1 = {x: t1, y: past_temperature_data, mode: 'lines+markers', type: 'line', name: 'Past temperature points'};
+		var trace2 = {x: t2, y: predicted_24hour_temperature_data, mode: 'lines+markers', type: 'line', name: 'Predicted temperature points'};
 		var data = [trace1, trace2];
-		var layout = {grid: {rows: 1, columns: 1, pattern: 'independent'}, title: title_text};
+		var layout = {grid: {rows: 1, columns: 1, pattern: 'independent'}, title: title_text, xaxis: {title: x_text_trace1and2}, yaxis: {title: y_text_trace1and2}};
 		Plotly.newPlot('data_display', data, layout);
 	
 		// -----------------------------------------------
