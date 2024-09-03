@@ -294,7 +294,6 @@ async function view_fetched_data() {
 		// ------------------------
 
 		const epochs = 400;
-		
 		const history = await lstmModel.fit(xs_3d_arr, ys_1d_arr, { 
 					batchSize: batch_size, 
 					epochs: epochs, 
@@ -309,8 +308,6 @@ async function view_fetched_data() {
 				})
 			.then(async function() { document.getElementById("progress_bar").display.style = "none"; });
 		console.log('history: ', history);
-
-		
 
 		// ------------------------
 		// Print prediction from LSTM model
@@ -388,7 +385,7 @@ async function view_fetched_data() {
 		
 		// ------------------------
 		
-		var num_of_outputs = 1;
+		const num_of_outputs = 1;
 
 		// Regression model
 		const input = tf.input({shape: [num_of_features]}); 
@@ -406,15 +403,20 @@ async function view_fetched_data() {
 		// ------------------------
 
 		const batchSize = 1;
-		
+		const epochs = 200;
 		const history = await Regmodel.fit(xs_2d_arr, ys_1d_arr, { 
 					batchSize: batchSize, 
-					epochs: 200, 
+					epochs: epochs, 
 					callbacks: { onEpochEnd: async (epoch, logs) => { 
-						if (epoch % 50 == 0) { console.log('epoch: ', epoch); } 
+						if (epoch % 50 == 0) { 
+							document.getElementById("progress_bar").display.style = "block";
+							document.getElementById("progress_bar").value = epoch/epochs;
+							console.log('epoch: ', epoch); 
+						}
 						// console.log('logs: ', logs); 
 					}} 
-				});
+				})
+			.then(async function() { document.getElementById("progress_bar").display.style = "none"; });
 		console.log('history: ', history);
 
 		// ------------------------
