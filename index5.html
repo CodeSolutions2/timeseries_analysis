@@ -409,43 +409,6 @@ async function predict() {
 			
 			document.getElementById("progress_bar").style.display = "none";
 			
-	
-			// ------------------------
-			// Print prediction from LSTM model
-			// ------------------------
-			// Forecasting loop
-			const num_of_predictions = 1;
-			var preds = [];
-			for (var loop=0; loop<num_of_predictions; loop++) {
-
-				console.log('xs_test_3d_arr: ', xs_test_3d_arr);
-				
-				// Evaluation of prediction with respect to the model
-				var result = lstmModel.predict( xs_test_3d_arr ); // []
-				// console.log('result : ', result);
-	
-				// ------------------------
-	
-				// Obtain prediction output from model
-				// const output_value0 = await result.data();
-				// console.log('output_value0 : ', output_value0);
-				// OR
-				var output_value = result.dataSync()[0];  
-				// console.log('output_value : ', output_value);
-	
-				// ------------------------
-				
-				preds.push(output_value);
-	
-				// ------------------------
-			}
-			
-			console.log('preds : ', preds);
-			
-			// ------------------------
-	
-			document.getElementById('notification').innerHTML = "LSTM model prediction: " + preds + ".  ";
-			
 			// ------------------------
 			
 		} else if (model_type == 'Forecasting') {
