@@ -159,8 +159,8 @@ async function view_fetched_data() {
 		var y_text_trace1 = "Past Temperature (Celsius)";
 		var x_text_trace2 = "Time (hour)";
 		var y_text_trace2 = "Predicted Temperature (Celsius)";
-		var trace1 = {x: t1, y: past_temperature_data, xaxis: x_text_trace1, yaxis: y_text_trace1, mode: 'markers', type: 'line'};
-		var trace2 = {x: t2, y: predicted_24hour_temperature_data, xaxis: x_text_trace2, yaxis: y_text_trace2, mode: 'markers', type: 'line'};
+		var trace1 = {x: t1, y: past_temperature_data, xaxis: x_text_trace1, yaxis: y_text_trace1, mode: 'lines+markers', type: 'line', name: 'Past temperature points'};
+		var trace2 = {x: t2, y: predicted_24hour_temperature_data, xaxis: x_text_trace2, yaxis: y_text_trace2, mode: 'lines+markers', type: 'line', name: 'Predicted temperature points'};
 		var data = [trace1, trace2];
 		var layout = {grid: {rows: 2, columns: 1, pattern: 'independent'}, title: title_text};
 		Plotly.newPlot('data_display', data, layout);
@@ -407,14 +407,14 @@ async function predict() {
 						epochs: epochs, 
 						callbacks: { onEpochEnd: async (epoch, logs) => { 
 							if (epoch % 50 == 0) { 
-								document.getElementById("progress_bar").display.style = "block";
+								document.getElementById("progress_bar").style.display = "block";
 								document.getElementById("progress_bar").value = epoch/epochs;
 								console.log('epoch: ', epoch); 
 							} 
 							// console.log('logs: ', logs); 
 						}} 
 					})
-				.then(async function() { document.getElementById("progress_bar").display.style = "none"; });
+				.then(async function() { document.getElementById("progress_bar").style.display = "none"; });
 			console.log('history: ', history);
 	
 			// ------------------------
@@ -562,15 +562,15 @@ async function predict() {
 						batchSize: batchSize, 
 						epochs: epochs, 
 						callbacks: { onEpochEnd: async (epoch, logs) => { 
-							if (epoch % 50 == 0) { 
-								document.getElementById("progress_bar").display.style = "block";
+							if (epoch % 50 == 0) {
+								document.getElementById("progress_bar").style.display = "block";
 								document.getElementById("progress_bar").value = epoch/epochs;
 								console.log('epoch: ', epoch); 
 							}
 							// console.log('logs: ', logs); 
 						}} 
 					})
-				.then(async function() { document.getElementById("progress_bar").display.style = "none"; });
+				.then(async function() { document.getElementById("progress_bar").style.display = "none"; });
 			console.log('history: ', history);
 	
 			// ------------------------
