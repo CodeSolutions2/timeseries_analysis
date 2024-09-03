@@ -335,7 +335,7 @@ async function predict() {
 			if (case_num == 0) {
 	
 				// Case 0: predictions for all the data points in the timestep per batch (most basic model)
-				const input = tf.input({shape: [timesteps, num_of_features]});
+				const input = tf.input({shape: [timesteps, num_of_features], batchShape: [null, timesteps, num_of_features]});
 				console.log(JSON.stringify(input.shape));  // [null, timesteps, num_of_features]
 				
 				const lstm = tf.layers.lstm({
@@ -494,7 +494,11 @@ async function predict() {
 			console.log('Shape xs_flat: ', shap);
 	
 			// ------------------------
-			
+
+			// This is just one model to predict the next data point.
+			// One can make several models, shift the data by two points and predict every other point.
+			// OR
+			// Add a new feature for each data shift, to predict 'features_datashift' at one time
 			var data_point_shift_between_X_and_Y = 1;
 			
 			var repeated_last_value = await Array.from({length: data_point_shift_between_X_and_Y}, (val, ind) => { return xs_flat.at(xs_flat.length-1); });
@@ -579,17 +583,6 @@ async function predict() {
 			
 		} else if (model_type == 'Transformer_based') {
 			document.getElementById('notification').innerHTML = "model_type In progress.";
-	
-			// Step 0: Load a pretrained model 
-			// https://js.tensorflow.org/api/latest/#loadLayersModel
-			// const pretrained_model = await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/savedmodel/tsmixer/model.json');
-			// pretrained_model.summary();
-	
-			// Step 1: Find the desired layer and freeze layers or not
-			// pretrained_model.layers.trainable = false;
-	
-			// Obtain a layer from the pretrained model
-	
 			
 		} else {
 			document.getElementById('notification').innerHTML = "Please select a model type for timeseries prediction."; 
