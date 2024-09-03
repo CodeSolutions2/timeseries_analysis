@@ -30,12 +30,12 @@
 	
 <input id="LOCATION" type="text" value="" placeholder="LOCATION: Enter City, Country" rows="10" cols="100" style="display:none; text-align: left; width: 600px;">
 
-<br>
+<br><br>
 	
 <h3>[Step 1] View the selected timeseries data.</h3>
 <button id="view_fetched_data" onclick="view_fetched_data()">View Fetched Data</button>
   
-<br>
+<br><br>
 
 <h3>[Step 2] Predict future datapoints of the timeseries data.</h3>
 <!-- Drop down menu -->
@@ -50,14 +50,15 @@
 <br>
 <progress id="progress_bar" max="100" value="0" style="display:none">0%</progress>
 
-<br>
-	
-<div id="notification"></div>
-<div id="error"></div>
 <!-- ---------------------------------------- -->
 
 <th id="timeseries_output">
 <h3>[Steps 1 & 2] View Results.</h3>
+<div id="data_display" style="display:block; text-align: left; width: 600px; height: 600px">
+<br>
+<div id="notification"></div>
+<br>
+<div id="error"></div>
 </th>
 	
 </tr>
@@ -79,10 +80,10 @@ table {vertical-align: top; border-collapse: collapse; position: relative; z-ind
 tr {vertical-align: top; border: 0px solid black; padding: 30px 30px; }
 
 th, td {vertical-align: top; border: 0px solid black; padding: 10px; }
-th#pdf_viewer_input {width: 100%; }
-th#pdf_viewer_output {width: 100%; }
+th#timeseries_input {width: 100%; }
+th#timeseries_output {width: 100%; }
 
-object#pdf_object_element {position: absolute; vertical-align: top; top: 200; z-index: 200; }
+div#data_display {position: absolute; vertical-align: top; top: 200; z-index: 200; }
 </style>
 
 <!-- ---------------------------------------- -->
@@ -139,6 +140,32 @@ async function view_fetched_data() {
 		
 		array_object = await GET_weather_timeseries_data(latitude, Lat_lon_arr);
 		console.log('array_object: ', array_object);
+
+		// -----------------------------------------------
+	
+		var past_temperature_data = array_object[0].temperature_2m;
+		past_temperature_data = past_temperature_data.flat();
+		var t1 = await Array.from({length: past_temperature_data.length}, (val, ind) => { return ind; });
+		
+		// Print the [first datapoint of] 24 hour predictions from the site
+		var predicted_24hour_temperature_data = array_object[1].temperature_2m.at(0);
+		predicted_24hour_temperature_data = predicted_24hour_temperature_data.flat();
+		var t2 = await Array.from({length: predicted_24hour_temperature_data.length}, (val, ind) => { return ind; });
+	
+		// -----------------------------------------------
+		
+		var title_text = "Timeseries: temperature per hour";
+		var x_text_trace1 = "Time (hour)";
+		var y_text_trace1 = "Past Temperature (Celsius)";
+		var x_text_trace2 = "Time (hour)";
+		var y_text_trace2 = "Predicted Temperature (Celsius)";
+		var trace1 = {x: t1, y: past_temperature_data, xaxis: x_text_trace1, yaxis: y_text_trace1, mode: 'markers', type: 'line'};
+		var trace2 = {x: t2, y: predicted_24hour_temperature_data, xaxis: x_text_trace2, yaxis: y_text_trace2, mode: 'markers', type: 'line'};
+		var data = [trace1, trace2];
+		var layout = {grid: {rows: 2, columns: 1, pattern: 'independent'}, title: title_text};
+		Plotly.newPlot('data_display', data, layout);
+	
+		// -----------------------------------------------
 		
 	} else if (timeseries_data_source == 'Custom_URL_endpoint') {
 		document.getElementById('notification').innerHTML = "In progress.";
@@ -146,36 +173,16 @@ async function view_fetched_data() {
 	} else {
 		document.getElementById('notification').innerHTML = "Please select a timeseries data source."; 
 	}
-
-	// -----------------------------------------------
 	
-	var past_temperature_data = array_object[0].temperature_2m;
-
-	// Flatten to an array
-
-	
-
-	// Print the [first datapoint of] 24 hour predictions from the site
-	var predicted_24hour_temperature_data = array_object[1].temperature_2m.at(0);
-	document.getElementById('notification').innerHTML += "Site prediction: " + predictions;
-
-	// -----------------------------------------------
-
-	await plotly_line_chart(t1, x_avg, "Timeseries: temperature per hour", "Time (hour)", "Temperature (Celsius)");
-
-	// -----------------------------------------------
 }
 
-
+	
 	
 async function predict() {
 
 	if (array_object.length == 0) {
 		document.getElementById('notification').innerHTML = "Please select a timeseries data source and View the data.";
 	} else {
-
-			
-			
 		// -----------------------------------------------
 		// Time series prediction, like regression, is different than classification because [Y is composed of X]. 
 		// One needs to separate Y from X, using the [batch_size, timestep, num_of_features] organizaton, then restack X.
@@ -637,11 +644,6 @@ async function predict() {
 // -----------------------------------------------
 // SUBFUNCTIONS
 // -----------------------------------------------
-
-
-
-// -----------------------------------------------
-
 async function recur_func(arr) {
 	if (arr != undefined) {
 		return [arr[0], arr.length];
