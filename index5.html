@@ -131,7 +131,7 @@ async function view_fetched_data() {
 
 	// Calculate [batch_size, timestep, num_of_features] to separate X and Y
 	// var timesteps = 6;  // will need to put in timesteps=5 into the model, since we use the 6th one to assign to Y
-	var timesteps = 12;
+	var timesteps = 12; // Try a longer window such that the LSTM has more past data to train on, for a more accurate result
 	console.log('timesteps: ', timesteps);
 	
 	var num_of_features = xs_2d_arr.length;  // num_of_features_OR_colnum
@@ -250,7 +250,10 @@ async function view_fetched_data() {
 
 	if (model_type == 'LSTM') {
 
-		var num_of_outputs = 1; // a value from 1 to timesteps, or the number of data points to predict into the future
+		var num_of_outputs = 2; // a value from 1 to timesteps, or the number of data points to predict into the future
+
+		// ------------------------
+		
 		var n_a = timesteps;
 		const input = tf.input({shape: [timesteps, num_of_features]});
 		console.log(JSON.stringify(input.shape));  // [null,5,1]
@@ -268,11 +271,14 @@ async function view_fetched_data() {
 		// When returnState: true
 		// Layer dense_Dense1 expects 1 inputs, but it received 3 input tensors. Input received: [object Object],[object Object],[object Object]
 
+		// When returnSequences: true
+		// Error: Error when checking target: expected dense_Dense1 to have 3 dimension(s). but got array with shape 19,1
+		
 		// ------------------------
 		
 		// There should be one output every timesteps=5 for each batch_size=8 
-		// const denseLayer1 = tf.layers.dense({units: num_of_outputs, activation: 'linear'});
-		const denseLayer1 = tf.layers.dense({units: num_of_outputs});
+		// const denseLayer1 = tf.layers.dense({units: num_of_outputs, activation: 'linear'}); // returns an output from 0 to 1
+		const denseLayer1 = tf.layers.dense({units: num_of_outputs, activation: 'relu'});
 		
 		const output = denseLayer1.apply(lstm.apply(input));
 
