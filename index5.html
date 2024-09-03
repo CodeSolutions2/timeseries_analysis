@@ -130,6 +130,7 @@ async function view_fetched_data() {
 
 	// Calculate [batch_size, timestep, num_of_features] to separate X and Y
 	// var timesteps = 6;  // will need to put in timesteps=5 into the model, since we use the 6th one to assign to Y
+	// OR
 	var timesteps = 12; // Try a longer window such that the LSTM has more past data to train on, for a more accurate result
 	console.log('timesteps: ', timesteps);
 	
@@ -249,7 +250,7 @@ async function view_fetched_data() {
 
 	if (model_type == 'LSTM') {
 
-		var num_of_outputs = 2; // a value from 1 to timesteps, or the number of data points to predict into the future
+		var num_of_outputs = 1; // a value from 1 to timesteps, or the number of data points to predict into the future
 
 		// ------------------------
 		
@@ -291,16 +292,25 @@ async function view_fetched_data() {
 		await lstmModel.compile({optimizer: tf.train.adam(), loss: tf.losses.meanSquaredError, metrics: ['mse'],});
 
 		// ------------------------
+
+		const epochs = 400;
 		
 		const history = await lstmModel.fit(xs_3d_arr, ys_1d_arr, { 
 					batchSize: batch_size, 
-					epochs: 400, 
+					epochs: epochs, 
 					callbacks: { onEpochEnd: async (epoch, logs) => { 
-						if (epoch % 50 == 0) { console.log('epoch: ', epoch); } 
+						if (epoch % 50 == 0) { 
+							document.getElementById("progress_bar").display.style = "block";
+							document.getElementById("progress_bar").value = epoch/epochs;
+							console.log('epoch: ', epoch); 
+						} 
 						// console.log('logs: ', logs); 
 					}} 
-				});
+				})
+			.then(async function() { document.getElementById("progress_bar").display.style = "none"; });
 		console.log('history: ', history);
+
+		
 
 		// ------------------------
 		// Print prediction from LSTM model
