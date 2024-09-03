@@ -148,7 +148,7 @@ async function view_fetched_data() {
 		var t1 = await Array.from({length: past_temperature_data.length}, (val, ind) => { return ind; });
 		
 		// Print the [first datapoint of] 24 hour predictions from the site
-		var predicted_24hour_temperature_data = array_object[1].temperature_2m.at(0);
+		var predicted_24hour_temperature_data = array_object[1].temperature_2m;
 		predicted_24hour_temperature_data = predicted_24hour_temperature_data.flat();
 		var t2 = await Array.from({length: predicted_24hour_temperature_data.length}, (val, ind) => { return ind; });
 	
