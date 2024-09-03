@@ -264,16 +264,25 @@ async function view_fetched_data() {
 		const input = tf.input({shape: [timesteps, num_of_features]});
 		console.log(JSON.stringify(input.shape));  // [null,5,1]
 		
-		const lstm = tf.layers.lstm({units: n_a, 
-					     returnSequences: false, 
-					     returnState: true, 
-					     kernelInitializer: 'heNormal'
+		const lstm = tf.layers.lstm({
+			units: n_a,
+			returnSequences: false,
+			returnState: false,
+			kernelInitializer: 'heNormal'
 		});
 		console.log(JSON.stringify(lstm.apply(input).shape)); // [null,5]
 
+		// ------------------------
+		
+		// When returnState: true
+		// Layer dense_Dense1 expects 1 inputs, but it received 3 input tensors. Input received: [object Object],[object Object],[object Object]
+
+		// ------------------------
+		
 		// There should be one output every timesteps=5 for each batch_size=8 
 		// const denseLayer1 = tf.layers.dense({units: num_of_outputs, activation: 'linear'});
-		const denseLayer1 = tf.layers.dense({units: num_of_outputs});
+		// const denseLayer1 = tf.layers.dense({units: num_of_outputs});
+		const denseLayer1 = tf.layers.dense({units: 1});
 		
 		const output = denseLayer1.apply(lstm.apply(input));
 
@@ -337,11 +346,6 @@ async function view_fetched_data() {
 
 		shap = await shape(xs_2d_arr);  
 		console.log('Shape xs_2d_arr: ', shap);
-
-		// ------------------------
-
-		// Make xs_2d_arr a tensor
-		xs_2d_arr = await tf.tensor(xs_2d_arr);
 		
 		// ------------------------
 
@@ -359,7 +363,7 @@ async function view_fetched_data() {
     
 		shap = await shape(xs_flat);  
 		console.log('Shape xs_flat: ', shap);
-		
+
 		// ------------------------
 		
 		var data_point_shift_between_X_and_Y = 1;
@@ -372,6 +376,9 @@ async function view_fetched_data() {
 		console.log('Shape ys_1d_arr: ', shap);
 
 		// ------------------------
+
+		// Make xs_2d_arr a tensor
+		xs_2d_arr = await tf.tensor(xs_2d_arr);
 		
 		// Make ys_1d_arr a tensor
 		ys_1d_arr = await tf.tensor(ys_1d_arr);
