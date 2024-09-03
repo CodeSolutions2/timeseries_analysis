@@ -261,6 +261,7 @@ async function view_fetched_data() {
 		const case_num = 1;
 		
 		var n_a = timesteps;
+		const lstmModel = [];
 
 		if (case_num == 0) {
 
@@ -280,8 +281,7 @@ async function view_fetched_data() {
 			const output = denseLayer1.apply(lstm.apply(input));
 			console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [null, num_of_features]
 			
-			const lstmModel = await tf.model({inputs: input, outputs: output});
-			// console.log('lstmModel: ', lstmModel);
+			lstmModel = await tf.model({inputs: input, outputs: output});
 			
 		} else if (case_num == 1) {
 			
@@ -302,8 +302,7 @@ async function view_fetched_data() {
 			const output = denseLayer1.apply(lstm.apply(input));
 			console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [null,1]
 			
-			const lstmModel = await tf.model({inputs: input, outputs: output});
-			// console.log('lstmModel: ', lstmModel);
+			lstmModel = await tf.model({inputs: input, outputs: output});
 
 		} else if (case_num == 2) {
 			
@@ -313,9 +312,11 @@ async function view_fetched_data() {
 			const denseLayer1 = tf.layers.dense({units: num_of_classes, activation: 'softmax'});
 			const output = denseLayer1.apply(lstm.apply(input));
 			console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
-			const lstmModel = await tf.model({inputs: input, outputs: output});
+			lstmModel = await tf.model({inputs: input, outputs: output});
 		}
-			
+
+		// console.log('lstmModel: ', lstmModel);
+		
 		// ------------------------
 		
 		// When returnState: true
@@ -560,6 +561,19 @@ async function view_fetched_data() {
 	
 // -----------------------------------------------
 
+
+
+
+
+
+
+
+
+
+
+// -----------------------------------------------
+// SUBFUNCTIONS
+// -----------------------------------------------
 async function recur_func(arr) {
 	if (arr != undefined) {
 		return [arr[0], arr.length];
@@ -780,12 +794,6 @@ async function GET_weather_timeseries_data(latitude, longitude) {
 
 // -----------------------------------------------
 
-
-
-	
-// -----------------------------------------------
-// CORS methods
-// -----------------------------------------------
 async function fetch_CORS(url, method, data, headers, return_type) {
 
 	// url: url address
@@ -909,6 +917,7 @@ async function fetch_CORS(url, method, data, headers, return_type) {
 	// --------------------------------
 }
 
+// -----------------------------------------------
 
 async function define_proxy_handler() {
 	// Parameters to influence Response Header
