@@ -335,12 +335,12 @@ async function predict() {
 			if (case_num == 0) {
 	
 				// Case 0: predictions for all the data points in the timestep per batch (most basic model)
-				// const input = tf.input({shape: [timesteps, num_of_features], batchShape: [null, timesteps, num_of_features]});
+				// const input = tf.input({shape: [timesteps, num_of_features]});
 				// Please provide either a `shape` or `batchShape` argument to Input, but not both.
 				// OR
 				const input = tf.input({batchShape: [batch_size, timesteps, num_of_features]});
 				
-				console.log(JSON.stringify(input.shape));  // [null, timesteps, num_of_features]
+				console.log(JSON.stringify(input.shape));  // [19=batch_size, 11=timesteps, 1=num_of_features]
 				
 				const lstm = tf.layers.lstm({
 					recurrentActivation: 'hardSigmoid',
@@ -353,26 +353,33 @@ async function predict() {
 					stateful: true,
 					activation: 'tanh'
 				});
-				console.log(JSON.stringify(lstm.apply(input).shape)); // [null, n_a]
+				console.log(JSON.stringify(lstm.apply(input).shape)); // [19=batch_size, 11=timesteps, 11=n_a]
 		
-				const denseLayer1 = tf.layers.dense({units: timesteps}); //  = batch, timesteps, features
+				const denseLayer1 = tf.layers.dense({units: timesteps, inputShape: [timesteps, num_of_features]});
 				const output = denseLayer1.apply(lstm.apply(input));
-				console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [null, num_of_features]
+				console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [19=batch_size, 11=timesteps, 11=n_a]
 				
 				lstmModel = await tf.model({inputs: input, outputs: output});
 				
 			} else if (case_num == 1) {
 				
 				// Case 1: one data point prediction at the end of the timestep per batch (most basic model)
-				const input = tf.input({shape: [timesteps, num_of_features]});
+				// const input = tf.input({shape: [timesteps, num_of_features]});
+				// Please provide either a `shape` or `batchShape` argument to Input, but not both.
+				// OR
+				const input = tf.input({batchShape: [batch_size, timesteps, num_of_features]});
 				console.log(JSON.stringify(input.shape));  // [null,5,1]
 				
 				const lstm = tf.layers.lstm({
+					recurrentActivation: 'hardSigmoid',
 					units: n_a,
 					returnSequences: false,
 					returnState: false,
 					kernelInitializer: 'heNormal',
-					batchSize: batch_size
+					batchSize: batch_size,
+					inputShape: [timesteps, num_of_features],
+					stateful: true,
+					activation: 'tanh'
 				});
 				console.log(JSON.stringify(lstm.apply(input).shape)); // [null,5]
 				
