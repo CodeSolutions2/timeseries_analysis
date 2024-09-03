@@ -335,7 +335,11 @@ async function predict() {
 			if (case_num == 0) {
 	
 				// Case 0: predictions for all the data points in the timestep per batch (most basic model)
-				const input = tf.input({shape: [timesteps, num_of_features], batchShape: [null, timesteps, num_of_features]});
+				// const input = tf.input({shape: [timesteps, num_of_features], batchShape: [null, timesteps, num_of_features]});
+				// Please provide either a `shape` or `batchShape` argument to Input, but not both.
+				// OR
+				const input = tf.input({batchShape: [batch_size, timesteps, num_of_features]});
+				
 				console.log(JSON.stringify(input.shape));  // [null, timesteps, num_of_features]
 				
 				const lstm = tf.layers.lstm({
