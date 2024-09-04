@@ -447,7 +447,7 @@ async function predict() {
 			// Print prediction from LSTM model
 			// ------------------------
 			// Forecasting loop
-			const num_of_predictions = 1;
+			const num_of_predictions = 4;
 			var preds = [];
 			for (var loop=0; loop<num_of_predictions; loop++) {
 
@@ -476,7 +476,6 @@ async function predict() {
 				// ------------------------
 
 				// Only take one batch of xs_test_3d_arr
-				xs_test_3d_arr = xs_test_3d_arr[0]
 				xs_test_3d_arr = await shift_tf_xsTest_array(xs_test_3d_arr);
 	
 				// ------------------------
@@ -671,25 +670,25 @@ async function shift_tf_xsTest_array(xs_test_3d_arr) {
 	}
 	
 	var xs_test_flat = await convert_tfarray_to_FlatnormalArray(xs_test_3d_arr);
-	console.log('xs_test_flat: ', xs_test_flat);
+	// console.log('xs_test_flat: ', xs_test_flat);
 	
 	// ------------------------
 	
 	var repeated_last_value = await Array.from({length: 1}, (val, ind) => { return xs_test_flat.at(xs_test_flat.length-1); });
-	console.log('repeated_last_value: ', repeated_last_value);
+	// console.log('repeated_last_value: ', repeated_last_value);
 	
 	var xs_test_1d_arr = xs_test_flat.slice(1, xs_test_flat.length).concat(repeated_last_value);
-	console.log('xs_test_1d_arr: ', xs_test_1d_arr);
+	// console.log('xs_test_1d_arr: ', xs_test_1d_arr);
 	
 	// ------------------------
 	
 	var xs_test_2d_arr = xs_test_1d_arr.map((val, ind) => { return [val]; });
 	xs_test_3d_arr = [xs_test_2d_arr];
-	console.log('xs_test_3d_arr: ', xs_test_3d_arr);
+	// console.log('xs_test_3d_arr: ', xs_test_3d_arr);
 	
 	// Test shape - [ batch_size=1, timesteps, 1 ]
 	shap = await shape(xs_test_3d_arr);  
-	console.log('Shape xs_test_3d_arr: ', shap);
+	console.log('shift_tf_xsTest_array - Shape xs_test_3d_arr: ', shap);
 
 	return tf.tensor(xs_test_3d_arr);
 }
