@@ -455,10 +455,6 @@ async function predict() {
 
 				xs_test_3d_arr = await create_correct_batchSize_for_xsTest(xs_test_3d_arr, batch_size);
 				console.log('xs_test_3d_arr: ', xs_test_3d_arr);
-
-				// (Optional: ensure that it is a 3dtensor)
-				xs_test_3d_arr = tf.tensor3d(xs_test_3d_arr, [batch_size, timesteps, num_of_features]);
-				console.log('xs_test_3d_arr: ', xs_test_3d_arr);
 				
 				// Evaluation of prediction with respect to the model
 				var result = lstmModel.predict( xs_test_3d_arr );
@@ -478,8 +474,7 @@ async function predict() {
 				preds.push(output_value);
 	
 				// ------------------------
-
-				// Only take one batch of xs_test_3d_arr
+				
 				xs_test_3d_arr = await shift_tf_xsTest_array(xs_test_3d_arr);
 	
 				// ------------------------
@@ -667,26 +662,43 @@ async function create_correct_batchSize_for_xsTest(xs_test_3d_arr, batch_size) {
 
 async function shift_tf_xsTest_array(xs_test_3d_arr) {
 
-	shap = await shape(xs_test_3d_arr);  
-	console.log('shift_tf_xsTest_array - Shape xs_test_3d_arr: ', shap);
-	// xs_test_3d_arr should be [19, 11, 1]
+	// xs_test_3d_arr is a tensor of shape [19, 11, 1] and size=209
+	// Convert it from tensor to Array, because the size keeps getting computed as the shape
+	
+	// ------------------------
+
+	// Convert tensor to a TypedArray
+	xs_test_3d_arr = xs_test_3d_arr.dataSync(); // Float32Array , [batch_size=1, timesteps=11, num_of_features=1]
+	console.log('xs_test_3d_arr: ', xs_test_3d_arr);
+
+	// Convert the TypedArray into a normal array
+	var normalArray = await Array.from(xs_test_3d_arr);
+	console.log('normalArray: ', normalArray);
+
+	// ------------------------
+
+	// Check the shape of the normal array
+	shap = await shape(normalArray);  
+	console.log('shift_tf_xsTest_array - Shape normalArray: ', shap);
+	// normalArray should be [19, 11, 1]
 
 	// ------------------------
 	
 	// Ensure that the first batch is only used
-	if (xs_test_3d_arr.length > 1) {
+	if (normalArray.length > 1) {
 		// only take the first batch because all the other batches are repetitions
-		xs_test_3d_arr = [xs_test_3d_arr[0]];
+		normalArray = [normalArray[0]];
 	}
-	// xs_test_3d_arr should be [1, 11, 1]
+	// normalArray should be [1, 11, 1]
 
 	// ------------------------
 	
-	var xs_test_flat = await convert_tfarray_to_FlatnormalArray(xs_test_3d_arr);
-	// console.log('xs_test_flat: ', xs_test_flat);
+	var xs_test_flat = normalArray.flat();   // [timesteps=11]
+	console.log('xs_test_flat: ', xs_test_flat);
 	
 	// ------------------------
-	
+
+	// Shift the flat array to the right by one index
 	var repeated_last_value = await Array.from({length: 1}, (val, ind) => { return xs_test_flat.at(xs_test_flat.length-1); });
 	// console.log('repeated_last_value: ', repeated_last_value);
 	
@@ -694,7 +706,8 @@ async function shift_tf_xsTest_array(xs_test_3d_arr) {
 	// console.log('xs_test_1d_arr: ', xs_test_1d_arr);
 	
 	// ------------------------
-	
+
+	// Reassemble the 1d array into a 3d array
 	var xs_test_2d_arr = xs_test_1d_arr.map((val, ind) => { return [val]; });
 	xs_test_3d_arr = [xs_test_2d_arr];
 	// console.log('xs_test_3d_arr: ', xs_test_3d_arr);
