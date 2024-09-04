@@ -446,7 +446,7 @@ async function predict() {
 			// Print prediction from LSTM model
 			// ------------------------
 			// Forecasting loop
-			const num_of_predictions = 4;
+			const num_of_predictions = 1;
 			var preds = [];
 			for (var loop=0; loop<num_of_predictions; loop++) {
 
@@ -471,12 +471,6 @@ async function predict() {
 				// ------------------------
 				
 				preds.push(output_value);
-	
-				// ------------------------
-
-				// input: xs_test_3d_arr is a JS array [ 19, 11, 1 ]
-				xs_test_3d_arr = await shift_tf_xsTest_array(xs_test_3d_arr);
-				// output: xs_test_3d_arr is a JS array [ 19, 11, 1 ]
 				
 				// ------------------------
 			}
