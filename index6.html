@@ -454,10 +454,10 @@ async function predict() {
 			for (var loop=0; loop<num_of_predictions; loop++) {
 
 				xs_test_3d_arr = await create_correct_batchSize_for_xsTest(xs_test_3d_arr, batch_size);
-				console.log('xs_test_3d_arr: ', xs_test_3d_arr);
+				console.log('xs_test_3d_arr: ', xs_test_3d_arr); // JS array [ 19, 11, 1 ]
 				
 				// Evaluation of prediction with respect to the model
-				var result = lstmModel.predict( xs_test_3d_arr );
+				var result = lstmModel.predict( tf.tensor(xs_test_3d_arr) );
 				// console.log('result : ', result);
 	
 				// ------------------------
@@ -476,7 +476,8 @@ async function predict() {
 				// ------------------------
 				
 				xs_test_3d_arr = await shift_tf_xsTest_array(xs_test_3d_arr);
-	
+				// output: xs_test_3d_arr is a JS array [ 19, 11, 1 ]
+				
 				// ------------------------
 			}
 			
@@ -655,33 +656,45 @@ async function create_correct_batchSize_for_xsTest(xs_test_3d_arr, batch_size) {
 	shap = await shape(xs_test_3d_arr);  
 	console.log('Shape xs_test_3d_arr: ', shap);
 	
-	return tf.tensor(xs_test_3d_arr);
+	return xs_test_3d_arr;
 }
 	
 // -----------------------------------------------
 
-async function shift_tf_xsTest_array(xs_test_3d_arr) {
+async function shift_tf_xsTest_array(normalArray) {
 
+	// Way 0
 	// xs_test_3d_arr is a tensor of shape [19, 11, 1] and size=209
 	// Convert it from tensor to Array, because the size keeps getting computed as the shape
 	
 	// ------------------------
 
 	// Convert tensor to a TypedArray
-	xs_test_3d_arr = xs_test_3d_arr.dataSync(); // Float32Array , [batch_size=1, timesteps=11, num_of_features=1]
-	console.log('xs_test_3d_arr: ', xs_test_3d_arr);
+	// xs_test_3d_arr = xs_test_3d_arr.dataSync(); // Float32Array , [batch_size=1, timesteps=11, num_of_features=1]
+	// console.log('xs_test_3d_arr: ', xs_test_3d_arr);
 
 	// Convert the TypedArray into a normal array
-	var normalArray = await Array.from(xs_test_3d_arr);
-	console.log('normalArray: ', normalArray);
+	// var normalArray = await Array.from(xs_test_3d_arr);
+	// console.log('normalArray: ', normalArray);
 
 	// ------------------------
 
+	// Check the shape of the normal array
+	// shap = await shape(normalArray);  
+	// console.log('shift_tf_xsTest_array - Shape normalArray: ', shap);
+	// normalArray should be [19, 11, 1]
+
+
+
+	// Try 1
+	// normalArray is a JS array [ 19, 11, 1 ]
+	
 	// Check the shape of the normal array
 	shap = await shape(normalArray);  
 	console.log('shift_tf_xsTest_array - Shape normalArray: ', shap);
 	// normalArray should be [19, 11, 1]
 
+	
 	// ------------------------
 	
 	// Ensure that the first batch is only used
@@ -716,7 +729,7 @@ async function shift_tf_xsTest_array(xs_test_3d_arr) {
 	shap = await shape(xs_test_3d_arr);  
 	console.log('shift_tf_xsTest_array - Shape xs_test_3d_arr: ', shap);
 
-	return tf.tensor(xs_test_3d_arr);
+	return xs_test_3d_arr;
 }
 
 // -----------------------------------------------
