@@ -453,6 +453,8 @@ async function predict() {
 
 				xs_test_3d_arr = await create_correct_batchSize_for_xsTest(xs_test_3d_arr, batch_size);
 				console.log('xs_test_3d_arr: ', xs_test_3d_arr);
+
+				// (Optional: ensure that it is a 3dtensor)
 				
 				// Evaluation of prediction with respect to the model
 				var result = lstmModel.predict( xs_test_3d_arr );
@@ -472,7 +474,9 @@ async function predict() {
 				preds.push(output_value);
 	
 				// ------------------------
-	
+
+				// Only take one batch of xs_test_3d_arr
+				xs_test_3d_arr = xs_test_3d_arr[0]
 				xs_test_3d_arr = await shift_tf_xsTest_array(xs_test_3d_arr);
 	
 				// ------------------------
@@ -659,6 +663,12 @@ async function create_correct_batchSize_for_xsTest(xs_test_3d_arr, batch_size) {
 // -----------------------------------------------
 
 async function shift_tf_xsTest_array(xs_test_3d_arr) {
+
+	// Ensure that the first batch is only used
+	if (xs_test_3d_arr.length > 1) {
+		// only take the first batch because all the other batches are repetitions
+		xs_test_3d_arr = [xs_test_3d_arr[0]];
+	}
 	
 	var xs_test_flat = await convert_tfarray_to_FlatnormalArray(xs_test_3d_arr);
 	console.log('xs_test_flat: ', xs_test_flat);
