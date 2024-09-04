@@ -396,12 +396,14 @@ async function predict() {
 					stateful: true,
 					activation: 'tanh'
 				});
-				console.log(JSON.stringify(lstm.apply(input).shape)); // [null, timesteps=11] OR [batch_size=19, timesteps=11]
+				console.log(JSON.stringify(lstm.apply(input).shape));
+				// [null, timesteps=11] OR [batch_size=19, timesteps=11]
 				
 				const denseLayer1 = tf.layers.dense({units: num_of_outputs});
 				
 				const output = denseLayer1.apply(lstm.apply(input));
-				console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [null, num_of_outputs=1] OR [batch_size=19, num_of_outputs=1]
+				console.log("LSTM model output shape: ", JSON.stringify(output.shape));  
+				// [null, num_of_outputs=1] OR [batch_size=19, num_of_outputs=1]
 				
 				lstmModel = await tf.model({inputs: input, outputs: output});
 				
@@ -455,6 +457,8 @@ async function predict() {
 				console.log('xs_test_3d_arr: ', xs_test_3d_arr);
 
 				// (Optional: ensure that it is a 3dtensor)
+				xs_test_3d_arr = tf.tensor3d(xs_test_3d_arr, [batch_size, timesteps, num_of_features]);
+				console.log('xs_test_3d_arr: ', xs_test_3d_arr);
 				
 				// Evaluation of prediction with respect to the model
 				var result = lstmModel.predict( xs_test_3d_arr );
@@ -467,7 +471,7 @@ async function predict() {
 				// console.log('output_value0 : ', output_value0);
 				// OR
 				var output_value = result.dataSync()[0];  
-				// console.log('output_value : ', output_value);
+				console.log('output_value : ', output_value);
 	
 				// ------------------------
 				
@@ -663,11 +667,20 @@ async function create_correct_batchSize_for_xsTest(xs_test_3d_arr, batch_size) {
 
 async function shift_tf_xsTest_array(xs_test_3d_arr) {
 
+	shap = await shape(xs_test_3d_arr);  
+	console.log('shift_tf_xsTest_array - Shape xs_test_3d_arr: ', shap);
+	// xs_test_3d_arr should be [19, 11, 1]
+
+	// ------------------------
+	
 	// Ensure that the first batch is only used
 	if (xs_test_3d_arr.length > 1) {
 		// only take the first batch because all the other batches are repetitions
 		xs_test_3d_arr = [xs_test_3d_arr[0]];
 	}
+	// xs_test_3d_arr should be [1, 11, 1]
+
+	// ------------------------
 	
 	var xs_test_flat = await convert_tfarray_to_FlatnormalArray(xs_test_3d_arr);
 	// console.log('xs_test_flat: ', xs_test_flat);
