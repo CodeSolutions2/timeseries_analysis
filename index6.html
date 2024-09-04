@@ -323,20 +323,18 @@ async function predict() {
 	
 		if (model_type == 'LSTM') {
 			
-	    const case_num = 1;
+			const case_num = 1;
 			var n_a = timesteps;
       
 			// ------------------------
       
 			var lstmModel = [];
-
-      // ------------------------
+			
+			// ------------------------
 	
 			if (case_num == 0) {
 	
 				// Case 0: predictions for all the data points in the timestep per batch (most basic model)
-
-        const batchSize = 1;
         
 				const input = tf.input({shape: [timesteps, num_of_features]});
 				// Please provide either a `shape` or `batchShape` argument to Input, but not both.
@@ -379,13 +377,13 @@ async function predict() {
 				
 				// Case 1: one data point prediction at the end of the timestep per batch (most basic model)
 
-        var num_of_outputs = 1; // a value from 1 to timesteps, or the number of data points to predict into the future
+        			var num_of_outputs = 1; // a value from 1 to timesteps, or the number of data points to predict into the future
         
-				// const input = tf.input({shape: [timesteps, num_of_features]});
+				// const input = tf.input({shape: [timesteps, num_of_features]}); // [null, timesteps=5, num_of_features=1]
 				// Please provide either a `shape` or `batchShape` argument to Input, but not both.
 				// OR
 				const input = tf.input({batchShape: [batch_size, timesteps, num_of_features]});
-				console.log(JSON.stringify(input.shape));  // [null, timesteps=5, num_of_features=1]
+				console.log(JSON.stringify(input.shape));  // [batch_size=19, timesteps=11, num_of_features=1]
 				
 				const lstm = tf.layers.lstm({
 					recurrentActivation: 'hardSigmoid',
@@ -398,12 +396,12 @@ async function predict() {
 					stateful: true,
 					activation: 'tanh'
 				});
-				console.log(JSON.stringify(lstm.apply(input).shape)); // [null, timesteps=5]
+				console.log(JSON.stringify(lstm.apply(input).shape)); // [null, timesteps=11] OR [batch_size=19, timesteps=11]
 				
 				const denseLayer1 = tf.layers.dense({units: num_of_outputs});
 				
 				const output = denseLayer1.apply(lstm.apply(input));
-				console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [null,1]
+				console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [null, num_of_outputs=1] OR [batch_size=19, num_of_outputs=1]
 				
 				lstmModel = await tf.model({inputs: input, outputs: output});
 				
@@ -453,10 +451,11 @@ async function predict() {
 			var preds = [];
 			for (var loop=0; loop<num_of_predictions; loop++) {
 
+				xs_test_3d_arr = await create_correct_batchSize_for_xTest(xs_test_3d_arr, batch_size);
 				console.log('xs_test_3d_arr: ', xs_test_3d_arr);
 				
 				// Evaluation of prediction with respect to the model
-				var result = lstmModel.predict( xs_test_3d_arr ); // []
+				var result = lstmModel.predict( xs_test_3d_arr );
 				// console.log('result : ', result);
 	
 				// ------------------------
@@ -624,6 +623,39 @@ async function predict() {
 		
 		// -----------------------------------------------
 	}
+}
+
+// -----------------------------------------------
+
+async function create_correct_batchSize_for_xTest(xs_test_3d_arr, batch_size) {
+
+	xs_test_3d_arr = xs_test_3d_arr.dataSync(); // convert to array , [batch_size=1, timesteps=11, num_of_features=1]
+	console.log('xs_test_3d_arr: ', xs_test_3d_arr);
+	
+	var xs_test_flat = xs_test_3d_arr.flat();   // [timesteps=11]
+	console.log('xs_test_flat: ', xs_test_flat);
+
+	var xs_test_1d_arr = xs_test_flat;
+
+	var xs_test_2d_arr = xs_test_1d_arr.map((val, ind) => { return [val]; });
+	console.log('xs_test_2d_arr: ', xs_test_2d_arr); // [timesteps=11, num_of_features=1]
+
+	shap = await shape(xs_test_2d_arr);  
+	console.log('Shape xs_test_2d_arr: ', shap);
+
+	// -----------------------------
+	
+	// Repeat xs_test batch_size times
+	xs_test_3d_arr = [];
+	for (var i=0; i<batch_size; i++) {
+		xs_test_3d_arr.push(xs_test_2d_arr)
+	}
+	// console.log('xs_test_3d_arr: ', xs_test_3d_arr);  // [batch_size=19, timesteps=11, num_of_features=1]
+
+	shap = await shape(xs_test_3d_arr);  
+	console.log('Shape xs_test_3d_arr: ', shap);
+	
+	return tf.tensor(xs_test_3d_arr);
 }
 	
 // -----------------------------------------------
