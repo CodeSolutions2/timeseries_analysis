@@ -319,110 +319,43 @@ async function predict() {
 		var model_type = document.getElementById("model_type").value;
 	
 		if (model_type == 'LSTM') {
-			
-			const case_num = 0;
-			
-			// ------------------------
       
 			var lstmModel = [];
 			
 			// ------------------------
 	
-			if (case_num == 0) {
-	
-				// Case 0: predictions for all the data points in the timestep per batch (most basic model)
-        			var n_a = 1;
-				var num_of_outputs = timesteps;
-				var batchSize = batch_size;
+			// Case 1: one data point prediction at the end of the timestep per batch (most basic model)
+			var n_a = timesteps;
+			var num_of_outputs = 1; // a value from 1 to timesteps, or the number of data points to predict into the future
 
-				// Please provide either a `shape` or `batchShape` argument to Input, but not both.
-				// const input = tf.input({shape: [timesteps, num_of_features]});
-				// OR
-				// If an RNN is stateful, it needs to know its batch size. Specify the batch size of your input tensors:
-				// - If using a Sequential model, specify the batch size by passing a `batchInputShape` option to your first layer.
-				// - If using the functional API, specify the batch size by passing a `batchShape` option to your Input layer.
-				const input = tf.input({batchShape: [batch_size, timesteps, num_of_features]});
-				
-				console.log(JSON.stringify(input.shape));  // [19=batch_size, 11=timesteps, 1=num_of_features]
-				
-				const lstm = tf.layers.lstm({
-					recurrentActivation: 'hardSigmoid',
-					units: n_a,
-					returnSequences: true,
-					returnState: false,
-					kernelInitializer: 'heNormal',
-					batchSize: batchSize,
-					inputShape: [timesteps, num_of_features],
-					stateful: true,
-					activation: 'tanh'
-				});
-				console.log(JSON.stringify(lstm.apply(input).shape)); // [19=batch_size, 11=timesteps, 11=n_a]
-		
-				// const denseLayer1 = tf.layers.dense({units: num_of_outputs, inputShape: [timesteps, num_of_features]});
-				const denseLayer1 = tf.layers.dense({units: num_of_outputs});
-				
-				const output = denseLayer1.apply(lstm.apply(input));
-				console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [19=batch_size, 11=timesteps, 11=n_a]
-				
-				lstmModel = await tf.model({inputs: input, outputs: output});
-// Shape ys_1d_arr:  
-// Array [ undefined ]
-// index5.html:317:11
-// [19,11,1] index5.html:343:13
-// [19,11,11] index5.html:356:13
-// The shape of the input tensor ([19,11,11]) does not match the expectation of layer dense_Dense1: [null,11,1] tfjs@latest:17:539374
-// LSTM model output shape:  [19,11,11] index5.html:360:13
-// lstmModel:  
-// Object { _callHook: null, _addedWeightNames: [], _stateful: false, id: 4, activityRegularizer: null, inputSpec: null, supportsMasking: false, _trainableWeights: [], _nonTrainableWeights: [], _losses: [], … }
-// index5.html:405:12
-// Uncaught (in promise) Error: Error when checking target: expected dense_Dense1 to have 3 dimension(s). but got array with shape 19,1
-				
-			} else if (case_num == 1) {
-				
-				// Case 1: one data point prediction at the end of the timestep per batch (most basic model)
-				var n_a = timesteps;
-        			var num_of_outputs = 1; // a value from 1 to timesteps, or the number of data points to predict into the future
-        
-				// const input = tf.input({shape: [timesteps, num_of_features]}); // [null, timesteps=5, num_of_features=1]
-				// Please provide either a `shape` or `batchShape` argument to Input, but not both.
-				// OR
-				const input = tf.input({batchShape: [batch_size, timesteps, num_of_features]});
-				console.log(JSON.stringify(input.shape));  // [batch_size=19, timesteps=11, num_of_features=1]
-				
-				const lstm = tf.layers.lstm({
-					recurrentActivation: 'hardSigmoid',
-					units: n_a,
-					returnSequences: false,
-					returnState: false,
-					kernelInitializer: 'heNormal',
-					batchSize: batch_size,
-					inputShape: [timesteps, num_of_features],
-					stateful: true,
-					activation: 'tanh'
-				});
-				console.log(JSON.stringify(lstm.apply(input).shape));
-				// [null, timesteps=11] OR [batch_size=19, timesteps=11]
-				
-				const denseLayer1 = tf.layers.dense({units: num_of_outputs});
-				
-				const output = denseLayer1.apply(lstm.apply(input));
-				console.log("LSTM model output shape: ", JSON.stringify(output.shape));  
-				// [null, num_of_outputs=1] OR [batch_size=19, num_of_outputs=1]
-				
-				lstmModel = await tf.model({inputs: input, outputs: output});
-				
-	
-			} else if (case_num == 2) {
-				
-				// Case 2: Classification prediction of timeseries class - one data point prediction at the end of the timestep per batch
-				var num_of_classes = 2;  // 2 or more
-				const lstm = tf.layers.lstm({units: n_a, returnSequences: false});
-				const denseLayer1 = tf.layers.dense({units: num_of_classes, activation: 'softmax'});
-				const output = denseLayer1.apply(lstm.apply(input));
-				console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [batch_size, timesteps, n_a]
-				lstmModel = await tf.model({inputs: input, outputs: output});
-			}
-	
+			// const input = tf.input({shape: [timesteps, num_of_features]}); // [null, timesteps=5, num_of_features=1]
+			// Please provide either a `shape` or `batchShape` argument to Input, but not both.
+			// OR
+			const input = tf.input({batchShape: [batch_size, timesteps, num_of_features]});
+			console.log(JSON.stringify(input.shape));  // [batch_size=19, timesteps=11, num_of_features=1]
+			
+			const lstm = tf.layers.lstm({
+				recurrentActivation: 'hardSigmoid',
+				units: n_a,
+				returnSequences: false,
+				returnState: false,
+				kernelInitializer: 'heNormal',
+				batchSize: batch_size,
+				inputShape: [timesteps, num_of_features],
+				stateful: true,
+				activation: 'tanh'
+			});
+			console.log(JSON.stringify(lstm.apply(input).shape));
+			// [null, timesteps=11] OR [batch_size=19, timesteps=11]
+			
+			const denseLayer1 = tf.layers.dense({units: num_of_outputs});
+			
+			const output = denseLayer1.apply(lstm.apply(input));
+			console.log("LSTM model output shape: ", JSON.stringify(output.shape));  
+			// [null, num_of_outputs=1] OR [batch_size=19, num_of_outputs=1]
+			
+			lstmModel = await tf.model({inputs: input, outputs: output});
+			
 			console.log('lstmModel: ', lstmModel);
 			
 			// ------------------------
