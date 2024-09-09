@@ -673,79 +673,76 @@ async function create_correct_batchSize_for_xsTest(xs_test_3d_arr, batch_size) {
 
 async function shift_tf_xsTest_array(normalArray) {
 
-	// Way 0
-	// xs_test_3d_arr is a tensor of shape [19, 11, 1] and size=209
-	// Convert it from tensor to Array, because the size keeps getting computed as the shape
+	// Make an array that is shape [ 19, 11, 1 ]
+	var dims = [ 19, 11, 1 ];
 	
-	// ------------------------
+	// -----------------------------
 
-	// Convert tensor to a TypedArray
-	// xs_test_3d_arr = xs_test_3d_arr.dataSync(); // Float32Array , [batch_size=1, timesteps=11, num_of_features=1]
-	// console.log('xs_test_3d_arr: ', xs_test_3d_arr);
+	// Optional
+	xs_test_3d_arr = tf.tensor3d(normalArray, [19,11,1]);
+	console.log('xs_test_3d_arr: ', xs_test_3d_arr);
 
+	// -----------------------------
+	
+	xs_test_3d_arr = xs_test_3d_arr.dataSync(); // Float32Array , [batch_size=1, timesteps=11, num_of_features=1]
+	console.log('xs_test_3d_arr: ', xs_test_3d_arr);
+	
+	// -----------------------------
+	
 	// Convert the TypedArray into a normal array
-	// var normalArray = await Array.from(xs_test_3d_arr);
-	// console.log('normalArray: ', normalArray);
+	var normalArray0 = await Array.from(xs_test_3d_arr);
+	// console.log('normalArray0: ', normalArray0);
 
-	// ------------------------
+	// -----------------------------
 
-	// Check the shape of the normal array
-	// shap = await shape(normalArray);  
-	// console.log('shift_tf_xsTest_array - Shape normalArray: ', shap);
-	// normalArray should be [19, 11, 1]
+	// Need a JavaScript reshape
+	var normalArray1 = await reshape_arr(normalArray0, dims)
 
-
-
-	// Try 1
-	// normalArray is a JS array [ 19, 11, 1 ]
-	
-	// Check the shape of the normal array
-	shap = await shape(normalArray);  
-	console.log('0. shift_tf_xsTest_array - Shape normalArray: ', shap);
-	// normalArray should be [19, 11, 1]
-	
-	// ------------------------
+	// -----------------------------
 	
 	// Ensure that the first batch is only used
-	if (normalArray.length > 1) {
-		// only take the first batch because all the other batches are repetitions
-		normalArray = [normalArray[0]];
+	if (normalArray1.length > 1) {
+		// only take the first batch
+		normalArray1 = [normalArray1[0]];
 	}
 
-	// Check the shape of the normal array
-	shap = await shape(normalArray);  
-	console.log('1. shift_tf_xsTest_array - Shape normalArray: ', shap);
-	// normalArray should be [1, 11, 1]
+	// -----------------------------
 
+	// Confirm that shape is [1, 11, 1]
+	shap = await shape(normalArray1);  
+	// console.log('Shape normalArray1: ', shap);
+	
+	// -----------------------------
+
+	// Flatten array
+	var xs_test_flat = await flat_arr(normalArray1);   // [timesteps=11]
+	// console.log('xs_test_flat: ', xs_test_flat);
+	
 	// ------------------------
 	
-	var xs_test_flat = normalArray.flat();   // [timesteps=11]
-	console.log('xs_test_flat: ', xs_test_flat);
-	
-	// ------------------------
-
-	// Shift the flat array to the right by one index
 	var repeated_last_value = await Array.from({length: 1}, (val, ind) => { return xs_test_flat.at(xs_test_flat.length-1); });
 	// console.log('repeated_last_value: ', repeated_last_value);
+
+	// -----------------------------
 	
 	var xs_test_1d_arr = xs_test_flat.slice(1, xs_test_flat.length).concat(repeated_last_value);
 	// console.log('xs_test_1d_arr: ', xs_test_1d_arr);
 	
 	// ------------------------
-
-	// Reassemble the 1d array into a 3d array
+	
 	var xs_test_2d_arr = xs_test_1d_arr.map((val, ind) => { return [val]; });
 	xs_test_3d_arr = [xs_test_2d_arr];
 	// console.log('xs_test_3d_arr: ', xs_test_3d_arr);
-	
-	// Test shape - [ batch_size=1, timesteps, 1 ]
-	shap = await shape(xs_test_3d_arr);  
-	console.log('shift_tf_xsTest_array - Shape xs_test_3d_arr: ', shap);
 
-	// ------------------------
+	// -----------------------------
 	
+	// Confirm that shape is [1, 11, 1]
+	shap = await shape(xs_test_3d_arr);  
+	console.log('Shape xs_test_3d_arr: ', shap);
+
 	return xs_test_3d_arr;
 }
+
 
 // -----------------------------------------------
 
