@@ -333,6 +333,7 @@ async function predict() {
 				// Case 0: predictions for all the data points in the timestep per batch (most basic model)
         			var n_a = 1;
 				var num_of_outputs = timesteps;
+				var batchSize = batch_size;
 				
 				const input = tf.input({shape: [timesteps, num_of_features]});
 				// Please provide either a `shape` or `batchShape` argument to Input, but not both.
