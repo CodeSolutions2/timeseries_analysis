@@ -334,11 +334,14 @@ async function predict() {
         			var n_a = 1;
 				var num_of_outputs = timesteps;
 				var batchSize = batch_size;
-				
-				const input = tf.input({shape: [timesteps, num_of_features]});
+
 				// Please provide either a `shape` or `batchShape` argument to Input, but not both.
+				// const input = tf.input({shape: [timesteps, num_of_features]});
 				// OR
-				//const input = tf.input({batchShape: [batch_size, timesteps, num_of_features]});
+				// If an RNN is stateful, it needs to know its batch size. Specify the batch size of your input tensors: 
+- If using a Sequential model, specify the batch size by passing a `batchInputShape` option to your first layer.
+- If using the functional API, specify the batch size by passing a `batchShape` option to your Input layer.
+				const input = tf.input({batchShape: [batch_size, timesteps, num_of_features]});
 				
 				console.log(JSON.stringify(input.shape));  // [19=batch_size, 11=timesteps, 1=num_of_features]
 				
