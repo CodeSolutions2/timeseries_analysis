@@ -950,6 +950,66 @@ async function flat_arr(arr) {
 }
 
 // -----------------------------------------------
+
+async function reshape_arr(arr, desired_dims) {
+
+	// Flatten array
+	var xs_test_flat = await flat_arr(arr);   // [timesteps=11]
+	console.log('xs_test_flat: ', xs_test_flat);
+
+	// -----------------------------
+	
+	var arr = await zeros(desired_dims);
+	
+	const shap = await shape(arr);  
+	console.log('Shape arr: ', shap);
+
+	if (shap.length == 2) {
+		// Reshape 1D_flat to 2d
+		var c = 0;
+		for (var i=0; i<desired_dims[0]; i++) {
+			for (var j=0; j<desired_dims[1]; j++) {
+				arr[i][j][k] = xs_test_flat.at(c);
+				c = c + 1;
+			}
+		}
+	} else if (shap.length == 3) {
+		// Reshape 1D_flat to 3d
+		var c = 0;
+		for (var i=0; i<desired_dims[0]; i++) {
+			for (var j=0; j<desired_dims[1]; j++) {
+				for (var k=0; k<desired_dims[2]; k++) {
+				       arr[i][j][k] = xs_test_flat.at(c);
+					c = c + 1;
+				}
+			}
+		}
+	} else if (shap.length == 4) {
+		// Reshape 1D_flat to 4d
+		var c = 0;
+		for (var i=0; i<desired_dims[0]; i++) {
+			for (var j=0; j<desired_dims[1]; j++) {
+				for (var k=0; k<desired_dims[2]; k++) {
+					for (var l=0; l<desired_dims[3]; l++) {
+					       arr[i][j][k][l] = xs_test_flat.at(c);
+						c = c + 1;
+					}
+				}
+			}
+		}
+	} else {
+		arr = xs_test_flat;
+	}
+	// -----------------------------
+
+	console.log('arr: ', arr);
+
+	// -----------------------------
+	
+	return arr;
+}
+	
+// -----------------------------------------------
 	
 async function GET_LATITUDE_LONGITUDE(LOCATION) {
 	
