@@ -291,11 +291,11 @@ async function predict() {
 	
 		console.log('batch_size_test: ', batch_size_test);
 		
-		var xs_test_3d_arr = await exchange_3d_dimensions(xs_3d_test, [1,2,0]);
+		var xs_test_3d_jsArr = await exchange_3d_dimensions(xs_3d_test, [1,2,0]);
 	
 		// Test shape - [ batch_size=1, timesteps, 1 ]
-		shap = await shape(xs_test_3d_arr);  
-		console.log('Shape xs_test_3d_arr: ', shap);
+		shap = await shape(xs_test_3d_jsArr);  
+		console.log('Shape xs_test_3d_jsArr: ', shap);
 		
 		// -------------------------------------------------
 		
@@ -450,13 +450,13 @@ async function predict() {
 			var preds = [];
 			for (var loop=0; loop<num_of_predictions; loop++) {
 
-				// input: xs_test_3d_arr is a JS array [ 19, 11, 1 ]
-				xs_test_3d_arr = await create_correct_batchSize_for_xsTest(xs_test_3d_arr, batch_size);
-				console.log('xs_test_3d_arr: ', xs_test_3d_arr);
-				// output: xs_test_3d_arr is a JS array [ 19, 11, 1 ]
+				// input: xs_test_3d_jsArr is a JS array [ 19, 11, 1 ]
+				xs_test_3d_jsArr = await create_correct_batchSize_for_xsTest(xs_test_3d_jsArr, batch_size);
+				console.log('xs_test_3d_jsArr: ', xs_test_3d_jsArr);
+				// output: xs_test_3d_jsArr is a JS array [ 19, 11, 1 ]
 				
 				// Evaluation of prediction with respect to the model
-				var result = lstmModel.predict( tf.tensor(xs_test_3d_arr) );
+				var result = lstmModel.predict( tf.tensor(xs_test_3d_jsArr) );
 				// console.log('result : ', result);
 	
 				// ------------------------
@@ -474,9 +474,9 @@ async function predict() {
 	
 				// ------------------------
 
-				// input: xs_test_3d_arr is a JS array [ 19, 11, 1 ]
-				xs_test_3d_arr = await shift_tf_xsTest_array(xs_test_3d_arr);
-				// output: xs_test_3d_arr is a JS array [ 19, 11, 1 ]
+				// input: xs_test_3d_jsArr is a JS array [ 19, 11, 1 ]
+				xs_test_3d_jsArr = await shift_tf_xsTest_array(xs_test_3d_jsArr);
+				// output: xs_test_3d_jsArr is a JS array [ 19, 11, 1 ]
 				
 				// ------------------------
 			}
@@ -632,16 +632,9 @@ async function predict() {
 
 async function create_correct_batchSize_for_xsTest(xs_test_3d_arr, batch_size) {
 
-	// normalArray is a JS array [ 19, 11, 1 ]
+	// xs_test_3d_jsArr is a JS array [ 1, 11, 1 ]
 	
-	xs_test_3d_arr = xs_test_3d_arr.dataSync(); // Float32Array , [batch_size=1, timesteps=11, num_of_features=1]
-	console.log('xs_test_3d_arr: ', xs_test_3d_arr);
-
-	// Convert the TypedArray into a normal array
-	const normalArray = await Array.from(xs_test_3d_arr);
-	console.log('normalArray: ', normalArray);
-	
-	var xs_test_flat = normalArray.flat();   // [timesteps=11]
+	var xs_test_flat = await flat_arr(xs_test_3d_jsArr);
 	console.log('xs_test_flat: ', xs_test_flat);
 
 	// ------------------------
