@@ -5,4 +5,9 @@ This repository is to demonstrate how timeseries analysis and prediction can be 
 ## Current working version
 The current example test case uses weather data from the open-meteo.com API, and compares current AI model predictions with open-meteo.com API forecasts.
 
-[In progress] https://codesolutions2.github.io/timeseries_analysis/index5.html
+[Regression predicts the next data point, LSTM predicts the next 5 data points] https://codesolutions2.github.io/timeseries_analysis/index7.html *Final Jamba based model in progress*
+
+
+## Next steps
+- To make an improved LSTM model
+- Smarter data stacking to forecast 24 data points for both LSTM and Regression
