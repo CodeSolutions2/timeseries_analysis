@@ -320,9 +320,8 @@ async function predict() {
 	
 		if (model_type == 'LSTM') {
 			
-			const case_num = 1;
-			var n_a = timesteps;
-      
+			const case_num = 0;
+			
 			// ------------------------
       
 			var lstmModel = [];
@@ -332,7 +331,9 @@ async function predict() {
 			if (case_num == 0) {
 	
 				// Case 0: predictions for all the data points in the timestep per batch (most basic model)
-        
+        			var n_a = 1;
+				var num_of_outputs = timesteps;
+				
 				const input = tf.input({shape: [timesteps, num_of_features]});
 				// Please provide either a `shape` or `batchShape` argument to Input, but not both.
 				// OR
@@ -353,7 +354,9 @@ async function predict() {
 				});
 				console.log(JSON.stringify(lstm.apply(input).shape)); // [19=batch_size, 11=timesteps, 11=n_a]
 		
-				const denseLayer1 = tf.layers.dense({units: timesteps, inputShape: [timesteps, num_of_features]});
+				// const denseLayer1 = tf.layers.dense({units: num_of_outputs, inputShape: [timesteps, num_of_features]});
+				const denseLayer1 = tf.layers.dense({units: num_of_outputs});
+				
 				const output = denseLayer1.apply(lstm.apply(input));
 				console.log("LSTM model output shape: ", JSON.stringify(output.shape));  // [19=batch_size, 11=timesteps, 11=n_a]
 				
@@ -373,7 +376,7 @@ async function predict() {
 			} else if (case_num == 1) {
 				
 				// Case 1: one data point prediction at the end of the timestep per batch (most basic model)
-
+				var n_a = timesteps;
         			var num_of_outputs = 1; // a value from 1 to timesteps, or the number of data points to predict into the future
         
 				// const input = tf.input({shape: [timesteps, num_of_features]}); // [null, timesteps=5, num_of_features=1]
@@ -566,7 +569,7 @@ async function predict() {
 			// ------------------------
 	
 			const batchSize = 1;
-			const epochs = 200;
+			const epochs = 100;
 			const history = await Regmodel.fit(xs_2d_arr, ys_1d_arr, { 
 						batchSize: batchSize, 
 						epochs: epochs, 
