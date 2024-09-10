@@ -573,14 +573,14 @@ async function predict() {
 async function create_correct_batchSize_for_xsTest(xs_test_3d_jsArr, batch_size) {
 
 	// xs_test_3d_jsArr is a JS array [ 1, 11, 1 ]
-	
+	// Flatten 3d arrary to a 1d array
 	var xs_test_flat = await flat_arr(xs_test_3d_jsArr);
 	console.log('xs_test_flat: ', xs_test_flat);
 
 	// ------------------------
 
+	// Transform 1d array to a 2d array
 	var xs_test_1d_arr = xs_test_flat;
-
 	var xs_test_2d_arr = xs_test_1d_arr.map((val, ind) => { return [val]; });
 	console.log('xs_test_2d_arr: ', xs_test_2d_arr); // [timesteps=11, num_of_features=1]
 
@@ -589,7 +589,7 @@ async function create_correct_batchSize_for_xsTest(xs_test_3d_jsArr, batch_size)
 
 	// -----------------------------
 	
-	// Repeat xs_test batch_size times
+	// Repeat the 2d array xs_test batch_size times
 	xs_test_3d_arr = [];
 	for (var i=0; i<batch_size; i++) {
 		xs_test_3d_arr.push(xs_test_2d_arr)
@@ -612,20 +612,21 @@ async function shift_tf_xsTest_array(normalArray) {
 	// -----------------------------
 
 	// Optional
+	// Go to Tensorflow notation to ensure the [shape is correctly dims]
 	xs_test_3d_arr = tf.tensor3d(normalArray, [19,11,1]);
 	console.log('xs_test_3d_arr: ', xs_test_3d_arr);
 
-	// -----------------------------
-	
+	// Convert Tensorflow to normal array
 	xs_test_3d_arr = xs_test_3d_arr.dataSync(); // Float32Array , [batch_size=1, timesteps=11, num_of_features=1]
 	console.log('xs_test_3d_arr: ', xs_test_3d_arr);
-	
-	// -----------------------------
 	
 	// Convert the TypedArray into a normal array
 	var normalArray0 = await Array.from(xs_test_3d_arr);
 	// console.log('normalArray0: ', normalArray0);
 
+	// It shows that it has shape [dims], but normalArray0 is a 1d array oddly.
+	// Thus, a JavaScript reshape function was used to ensure the array was the correct shape.
+	
 	// -----------------------------
 
 	// Need a JavaScript reshape
