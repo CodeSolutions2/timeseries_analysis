@@ -153,7 +153,8 @@ async function view_fetched_data() {
 		console.log('array_object: ', array_object);
 
 		// -----------------------------------------------
-	
+		// Plot data
+		// -----------------------------------------------
 		var past_temperature_data = array_object[0].temperature_2m;
 		past_temperature_data = past_temperature_data.flat();
 		console.log("past_temperature_data: ", JSON.stringify(past_temperature_data));
@@ -166,8 +167,6 @@ async function view_fetched_data() {
 		console.log("predicted_24hour_temperature_data: ", JSON.stringify(predicted_24hour_temperature_data));
 		
 		var t2 = await Array.from({length: predicted_24hour_temperature_data.length}, (val, ind) => { return (past_temperature_data.length-1) + ind; });
-	
-		// -----------------------------------------------
 
 		// https://plotly.com/javascript/line-charts/
 		var title_text = "Timeseries: temperature per hour";
@@ -179,7 +178,7 @@ async function view_fetched_data() {
 		var layout = {grid: {rows: 1, columns: 1, pattern: 'independent'}, title: title_text, xaxis: {title: x_text_trace1and2}, yaxis: {title: y_text_trace1and2}};
 		Plotly.newPlot('data_display', data, layout);
 
-    // -----------------------------------------------
+		// -----------------------------------------------
 		
 	} else if (timeseries_data_source == 'Energy_data_prediction') {
 		var LOCATION = document.getElementById("LOCATION").value;
@@ -189,9 +188,23 @@ async function view_fetched_data() {
 		var latitude = Lat_lon_arr.shift();
 		// console.log('latitude: ', latitude);
 		// console.log('longitude: ', Lat_lon_arr);
+
+		// The endpoint can only give one data point at a time, and not a timeseries.
+		// In order to get a timeseries, one can collect real-time data and put it in a storage file/bucket. 
+		// Fetch previous data from file storage - append new data point - then resave to file storage - use the data to predict next data point.
 		
+		// [0] Fetch previous data from file storage
+
+		// [1] append new data point to preivous data
 		array_object = await GET_energy_data_timeseries_data(latitude, Lat_lon_arr);
 		console.log('array_object: ', array_object);
+
+		// [2] Resave the data to file storage
+
+		
+		// -----------------------------------------------
+		// Plot data
+		// -----------------------------------------------
     
 		
 	} else if (timeseries_data_source == 'Custom_URL_endpoint') {
@@ -1035,10 +1048,10 @@ async function GET_weather_timeseries_data(latitude, longitude) {
   
 async function GET_energy_data_timeseries_data(latitude, longitude) {
 
-  // [Step 0] Get nearest station data (GPS coodinates)
+	// [Step 0] Get nearest station data (GPS coodinates)
 	// https://api-docs.iqair.com/?version=latest
 
-  // GET the .env key - decode the key
+	// GET the .env key - decode the key
 	var RepoAobj = {};
 	RepoAobj.repoOwner = 'CodeSolutions2';
 	RepoAobj.foldername = '.github'; // foldername in RepoB
@@ -1057,16 +1070,20 @@ async function GET_energy_data_timeseries_data(latitude, longitude) {
 	// --------------------------------
 	
 	url = `https://api.airvisual.com/v2/nearest_city?lat=${latitude}&lon=${longitude}&key=${API_KEY}`;
-	var settings = {"url": url,
-			"method": "GET",
-			"timeout": 0,
-		       };
-	
-	var data = $.ajax(settings).done(function (response) { console.log(response); return response; });
+	// var settings = {"url": url, "method": "GET", "timeout": 0, };
+	// return $.ajax(settings).done(function (response) { return response; });
 
-	console.log('data: ', data);
-  
-  return [0];
+	// OR
+	var current_obj = await jQuery_CORS(url, method, data, headers, return_type)
+
+	// pollution: air_quality_index_aqicn, air_quality_index_aqius
+	var pollution_datapoint = [current_obj.current.pollution.aqicn, current_obj.current.pollution.aqius];
+
+	// temperature: humidity, air_pressure, temperature, wind_direction, wind_speed
+	var temperature_datapoint = [current_obj.current.weather.hu, current_obj.current.weather.pr, current_obj.current.weather.tp, current_obj.current.weather.wd, current_obj.current.weather.ws];
+	// --------------------------------
+
+	return [pollution_datapoint, temperature_datapoint];
 }
 
 
