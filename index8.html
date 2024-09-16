@@ -1343,29 +1343,6 @@ async function jQuery_CORS(url, method, data, headers, return_type) {
 // ----------------------------------------------------
 
 	
-
-async function send_files_GCP_fetch_for_file_wTOKEN_wOAuthtoken(){
-	
-	// Make an Oauth2 token, paste it into Authorization
-	
-	  let response = await fetch(
-          `https://storage.googleapis.com/upload/storage/v1/b/timeseries-weather-pollution-data/o?uploadType=media&name=file_test.csv`,
-
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": 'multipart/form-data',
-              "Authorization": `Bearer ${token}`,
-            },
-            body: file_test.csv,
-          }).catch(error => { outp.innerHTML += error; });
-
-		  
-}  // end of send_files_GCP_fetch_for_file_wTOKEN_wOAuthtoken
-
-
-
-	
 </script>
 </body>
 </html>
