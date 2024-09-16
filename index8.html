@@ -93,6 +93,8 @@ div#data_display {position: absolute; vertical-align: top; top: 200; z-index: 20
 
 <script src="https://cdn.plot.ly/plotly-2.30.0.min.js" charset="utf-8"></script>
 
+<script src='https://code.jquery.com/jquery-3.6.3.min.js'></script> 
+
 <script type="module">
 import { run_env_decode_desalt } from "./library_to_run_GitHub_Actions.js";
 module.run_env_decode_desalt = run_env_decode_desalt;
@@ -1054,8 +1056,14 @@ async function GET_energy_data_timeseries_data(latitude, longitude) {
 
 	// --------------------------------
 	
-  url = `http://api.airvisual.com/v2/nearest_station?lat=${latitude}&lon=${longitude}&key=${API_KEY}`;
-	var data = await fetch_CORS(url, method, data, headers, return_type);
+	url = `http://api.airvisual.com/v2/nearest_station?lat=${latitude}&lon=${longitude}&key=${API_KEY}`;
+
+	// Blocked loading mixed active content “http://api.airvisual.com/v2/nearest_station?lat=45.7578137&lon=4.8320114&key=6129”
+	// TypeError: NetworkError when attempting to fetch resource.
+	// var data = await fetch_CORS(url, method, data, headers, return_type);
+	// OR
+	var data = await jQuery_CORS(url, method, data, headers, return_type);
+	
 	console.log('data: ', data);
   
   
@@ -1232,8 +1240,93 @@ async function define_proxy_handler() {
 	return await new Proxy(fetch, handler);
 }
 
-// -----------------------------------------------
 
+// -----------------------------------------------
+	
+async function jQuery_CORS(url, method, data, headers, return_type) {
+
+	// https://api.jquery.com/jQuery.ajax/
+	
+	// url: url address
+	// method: 'GET', 'POST', 'PUT'
+	// data: required data format for url address
+	// return_type: json, blob, arrayBuffer, text
+
+	var headers_final = {
+		"Accept": "application/json",
+		"Referer": url,
+		"Origin": "https://codesolutions2.github.io",
+		"Connection": "keep-alive",
+		//"Sec-Fetch-Dest": "empty",
+		//"Sec-Fetch-Mode": "cors", 
+		//"Sec-Fetch-Site": "cross-site",
+		//"Sec-Fetch-User": "?1",
+		"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0",
+		"Access-Control-Allow-Origin": "*",
+		//'Access-Control-Allow-Credentials': false, 
+		//"Access-Control-Request-Method": method,
+		//"Access-Control-Request-Headers": 'content-type,x-pingother',
+		//'Cache-Control': 'max-age=0',
+	};
+
+	headers_final = Object.assign({}, headers_final, headers);
+	
+	var settings = {
+		// url: url,
+		type : method,
+		async: true,
+		crossDomain: true,
+		beforeSend: function(xhr) {xhr.withCredentials = true;},
+		// headers: new Headers(headers_final),
+		success: function(response) { console.log('Success'); },
+		error: function(xhr, status, error) { console.log('Error:', error); }
+	};
+
+	// --------------------------------
+	
+	if (method == 'POST') {
+		settings.body = JSON.stringify(data);
+	}
+
+	// --------------------------------
+
+	// Determine the type of output to return 
+	
+	if (return_type == 'json') {
+		settings.xhrFields = {responseType: 'json'};
+		settings.dataType = 'json'; // data type response format: 'xml', html, script, json, jsonp, text
+		return $.ajax(url, [,settings])
+			.done(function(response) { return response; });
+		
+	} else if (return_type == 'blob') {
+		settings.xhrFields = {responseType: 'blob'};
+		settings.dataType = 'binary'; // data type response format: 'xml', html, script, json, jsonp, text, binary
+		return $.ajax(url, [,settings])
+			.done(function(response) { return response; });
+		
+	} else if (return_type == 'arrayBuffer') {
+		settings.xhrFields = {responseType: 'arrayBuffer'};
+		settings.dataType = 'binary'; // data type response format: 'xml', html, script, json, jsonp, text, binary
+		return $.ajax(url, [,settings])
+			.done(function(response) { return response; });
+		
+	} else if (return_type == 'text') {
+		settings.xhrFields = {responseType: 'text'};
+		settings.dataType = 'text'; // data type response format: 'xml', html, script, json, jsonp, text, binary
+		return $.ajax(url, [,settings])
+			.done(function(response) { return response; });
+
+	} else if (return_type == 'html') {
+		settings.xhrFields = {responseType: 'text'};
+		settings.dataType = 'html'; // data type response format: 'xml', html, script, json, jsonp, text, binary
+		return $.ajax(url, [,settings])
+			.done(function(response) { return response; });
+	}
+
+	// --------------------------------
+	
+}
+	
 // ----------------------------------------------------
 
 </script>
