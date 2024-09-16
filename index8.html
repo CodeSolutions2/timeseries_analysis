@@ -118,7 +118,7 @@ window.addEventListener('beforeunload', function() {
 
 async function processEvent_timeseries_data_source(event) {
 	
-	if (document.getElementById("timeseries_data_source").selectedIndex == 1) {
+	if (document.getElementById("timeseries_data_source").selectedIndex == 1 || document.getElementById("timeseries_data_source").selectedIndex == 2) {
 		document.getElementById("LOCATION").style.display = 'block';
 	} else {
 		document.getElementById("LOCATION").style.display = 'none';
