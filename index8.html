@@ -1059,7 +1059,6 @@ async function GET_energy_data_timeseries_data(latitude, longitude) {
 	RepoAobj.repoB_name = 'timeseries_analysis';
 
 	var API_KEY = await module.run_env_decode_desalt(RepoAobj);
-	console.log('API_KEY.slice(0,5): ', API_KEY.slice(0,5));
 
 	// Call the endpoint
 	var method = 'GET';  // method: 'GET', 'POST'
@@ -1074,7 +1073,8 @@ async function GET_energy_data_timeseries_data(latitude, longitude) {
 	// return $.ajax(settings).done(function (response) { return response; });
 
 	// OR
-	var current_obj = await jQuery_CORS(url, method, data, headers, return_type)
+	var current_obj = await jQuery_CORS(url, method, data, headers, return_type);
+	console.log('current_obj: ', current_obj);
 
 	// pollution: air_quality_index_aqicn, air_quality_index_aqius
 	var pollution_datapoint = [current_obj.current.pollution.aqicn, current_obj.current.pollution.aqius];
