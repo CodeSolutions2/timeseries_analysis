@@ -1,6 +1,3 @@
-// ------------------------------------------------
-// HIGHER-LEVEL PROCESS FUNCTIONS
-// ------------------------------------------------
 async initialize_github(RepoAobj) {
 
 	var obj_env = await GET_text_from_file_wo_auth_GitHub_RESTAPI(".env", ".github", RepoAobj.repoB_name, RepoAobj.repoOwner);
@@ -22,6 +19,9 @@ async initialize_github(RepoAobj) {
 
 // ----------------------------------------------------
 
+// ------------------------------------------------
+// HIGHER-LEVEL PROCESS FUNCTIONS
+// ------------------------------------------------
 export async function run_backend_process(RepoAobj) {
 
 	// RepoAobj.repoOwner, RepoAobj.repoA_name, RepoAobj.foldername, RepoAobj.filename, RepoAobj.input_text, RepoAobj.repoB_name, RepoAobj.repoOwner
