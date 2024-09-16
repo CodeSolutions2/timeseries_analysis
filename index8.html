@@ -1069,18 +1069,15 @@ async function GET_energy_data_timeseries_data(latitude, longitude) {
 	// --------------------------------
 	
 	url = `https://api.airvisual.com/v2/nearest_city?lat=${latitude}&lon=${longitude}&key=${API_KEY}`;
-	// var settings = {"url": url, "method": "GET", "timeout": 0, };
-	// return $.ajax(settings).done(function (response) { return response; });
-
-	// OR
+	
 	var current_obj = await jQuery_CORS(url, method, data, headers, return_type);
 	console.log('current_obj: ', current_obj);
 
 	// pollution: air_quality_index_aqicn, air_quality_index_aqius
-	var pollution_datapoint = [current_obj.current.pollution.aqicn, current_obj.current.pollution.aqius];
+	var pollution_datapoint = [current_obj.data.current.pollution.aqicn, current_obj.data.current.pollution.aqius];
 
 	// temperature: humidity, air_pressure, temperature, wind_direction, wind_speed
-	var temperature_datapoint = [current_obj.current.weather.hu, current_obj.current.weather.pr, current_obj.current.weather.tp, current_obj.current.weather.wd, current_obj.current.weather.ws];
+	var temperature_datapoint = [current_obj.data.current.weather.hu, current_obj.data.current.weather.pr, current_obj.data.current.weather.tp, current_obj.data.current.weather.wd, current_obj.data.current.weather.ws];
 	// --------------------------------
 
 	return [pollution_datapoint, temperature_datapoint];
