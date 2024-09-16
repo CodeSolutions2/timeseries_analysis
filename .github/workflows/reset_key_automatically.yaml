@@ -25,7 +25,7 @@ jobs:
       - name: Reset the key automatically
         uses: actions/github-script@v6
         env:
-          GITHUB_TOKEN: "${{ secrets.QCG_TOKEN0 }}"
+          AIRVISUAL_API_KEY: "${{ secrets.AIRVISUAL_API_KEY }}"
         with:
           result-encoding: string
           script: |
@@ -81,7 +81,7 @@ jobs:
 
             // --------------------------------
 
-            var new_auth = process.env.GITHUB_TOKEN;
+            var new_auth = process.env.AIRVISUAL_API_KEY;
             // console.log('new_auth: ', new_auth);
 
             // --------------------------------
