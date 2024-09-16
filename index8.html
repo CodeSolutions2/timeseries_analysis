@@ -1045,24 +1045,24 @@ async function GET_energy_data_timeseries_data(latitude, longitude) {
 	RepoAobj.filename = '.env'; // filename to create in RepoB, in foldernameobj.auth = obj.env_text; // Initialize value
 	RepoAobj.repoB_name = 'timeseries_analysis';
 
-  var API_KEY = await module.run_env_decode_desalt(RepoAobj);
-  console.log('API_KEY.slice(0,5): ', API_KEY.slice(0,5));
+	var API_KEY = await module.run_env_decode_desalt(RepoAobj);
+	console.log('API_KEY.slice(0,5): ', API_KEY.slice(0,5));
 
-  // Call the endpoint
-  var method = 'GET';  // method: 'GET', 'POST'
+	// Call the endpoint
+	var method = 'GET';  // method: 'GET', 'POST'
 	var data = [];  // data: required data format for url address
 	var headers = {};
 	var return_type = 'json';  // return_type: 'json', 'blob', 'blob_file_pdf', 'arrayBuffer', 'text'
 
 	// --------------------------------
 	
-	url = `http://api.airvisual.com/v2/nearest_station?lat=${latitude}&lon=${longitude}&key=${API_KEY}`;
+	url = `https://api.airvisual.com/v2/nearest_station?lat=${latitude}&lon=${longitude}&key=${API_KEY}`;
 
 	// Blocked loading mixed active content “http://api.airvisual.com/v2/nearest_station?lat=45.7578137&lon=4.8320114&key=6129”
 	// TypeError: NetworkError when attempting to fetch resource.
-	// var data = await fetch_CORS(url, method, data, headers, return_type);
+	var data = await fetch_CORS(url, method, data, headers, return_type);
 	// OR
-	var data = await jQuery_CORS(url, method, data, headers, return_type);
+	// var data = await jQuery_CORS(url, method, data, headers, return_type);
 	
 	console.log('data: ', data);
   
