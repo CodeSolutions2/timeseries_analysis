@@ -1057,12 +1057,16 @@ async function GET_energy_data_timeseries_data(latitude, longitude) {
 	// --------------------------------
 	
 	url = `https://api.airvisual.com/v2/nearest_station?lat=${latitude}&lon=${longitude}&key=${API_KEY}`;
-
+	// Try 0: with http://api...
 	// Blocked loading mixed active content “http://api.airvisual.com/v2/nearest_station?lat=45.7578137&lon=4.8320114&key=6129”
 	// TypeError: NetworkError when attempting to fetch resource.
-	var data = await fetch_CORS(url, method, data, headers, return_type);
-	// OR
-	// var data = await jQuery_CORS(url, method, data, headers, return_type);
+
+	// Try 1:  with https://api and fetch_CORS
+	// Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://api.airvisual.com/v2/nearest_station?lat=45.7578137&lon=4.8320114&key=61. (Reason: CORS header ‘Access-Control-Allow-Origin’ missing). Status code: 405.
+	// var data = await fetch_CORS(url, method, data, headers, return_type);
+
+	// Try 2:  with https://api and jQuery_CORS
+	var data = await jQuery_CORS(url, method, data, headers, return_type);
 	
 	console.log('data: ', data);
   
