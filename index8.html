@@ -1058,7 +1058,8 @@ async function GET_energy_data_timeseries_data(latitude, longitude) {
 	
 	url = `https://api.airvisual.com/v2/nearest_station?lat=${latitude}&lon=${longitude}&key=${API_KEY}`;
 	// Try 0: with http://api...
-	// Blocked loading mixed active content “http://api.airvisual.com/v2/nearest_station?lat=45.7578137&lon=4.8320114&key=6129”
+	// https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content?utm_source=mozilla&utm_medium=firefox-console-errors&utm_campaign=default
+	// Blocked loading mixed active content “http://api.airvisual.com/v2/nearest_station?lat=45.7578137&lon=4.8320114&key=61294276-e02e-4bcf-ba94-73288dfa3c71”
 	// TypeError: NetworkError when attempting to fetch resource.
 
 	// Try 1:  with https://api and fetch_CORS
@@ -1066,9 +1067,16 @@ async function GET_energy_data_timeseries_data(latitude, longitude) {
 	// var data = await fetch_CORS(url, method, data, headers, return_type);
 
 	// Try 2:  with https://api and jQuery_CORS
-	var data = await jQuery_CORS(url, method, data, headers, return_type);
-	
-	console.log('data: ', data);
+	var settings = {
+  "url": url,
+	"method": "GET",
+  "timeout": 0,
+};
+
+$.ajax(settings).done(function (response) {
+  console.log(response);
+});
+
   
   
   return [0];
