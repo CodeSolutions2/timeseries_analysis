@@ -1043,7 +1043,7 @@ async function GET_energy_data_timeseries_data(latitude, longitude) {
 	RepoAobj.filename = '.env'; // filename to create in RepoB, in foldernameobj.auth = obj.env_text; // Initialize value
 	RepoAobj.repoB_name = 'timeseries_analysis';
 
-  var API_KEY = await run_env_decode_desalt(RepoAobj);
+  var API_KEY = await module.run_env_decode_desalt(RepoAobj);
   console.log('API_KEY.slice(0,5): ', API_KEY.slice(0,5));
 
   // Call the endpoint
