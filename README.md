@@ -7,7 +7,7 @@ The current example test case uses weather data from the open-meteo.com API, and
 
 [Regression predicts the next data point (very accurate), LSTM predicts the next 5 data points (less accurate)] https://codesolutions2.github.io/timeseries_analysis/index8.html 
   - *Final custom model in progress*
-  - *Demonstration of endpoint data collection with database storage in progress* - IQAir weather and pollution endpoint used to collect timeseries data 
+  - *Demonstration of endpoint data collection with database storage in progress* - IQAir weather and pollution endpoint used to collect one timeseries data point, and each data point is stored for retreival of future predictions 
 
 
 ## Next steps
