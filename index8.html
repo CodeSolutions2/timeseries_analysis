@@ -199,6 +199,10 @@ async function view_fetched_data() {
 		array_object = await GET_energy_data_timeseries_data(latitude, Lat_lon_arr);
 		console.log('array_object: ', array_object);
 
+		document.getElementById('notification').innerHTML += array_object;
+		
+		document.getElementById('notification').innerHTML += "Data collection for model prediction in progress. One data point can be received per endpoint query.";
+		
 		// [2] Resave the data to file storage
 
 		
