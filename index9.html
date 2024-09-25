@@ -213,7 +213,7 @@ async function view_fetched_data() {
 		// https://plotly.com/javascript/line-charts/
 		var title_text = "UV: per hour";
 		var x_text_trace1and2 = "Time (hour)";
-		var y_text_trace1and2 = "UV (Celsius)";
+		var y_text_trace1and2 = "UV";
 		var trace1 = {x: t1, y: past_data, mode: 'lines+markers', type: 'line', name: 'Past data points'};
 		var trace2 = {x: t2, y: predicted_24hour_data, mode: 'lines+markers', type: 'line', name: 'Predicted data points'};
 		var data = [trace1, trace2];
