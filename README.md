@@ -5,7 +5,7 @@ This repository is to demonstrate how timeseries analysis and prediction can be 
 ## Current working version
 The current example test case uses weather data from the open-meteo.com API, and compares current AI model predictions with open-meteo.com API forecasts.
 
-[Regression predicts the next data point (very accurate), LSTM predicts the next 5 data points (less accurate)] https://codesolutions2.github.io/timeseries_analysis/index8.html
+[Regression predicts the next data point (very accurate), LSTM predicts the next 5 data points (less accurate)] https://codesolutions2.github.io/timeseries_analysis/index9.html
 
 
 ## In progress
