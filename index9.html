@@ -200,18 +200,18 @@ async function view_fetched_data() {
 		var t1 = await Array.from({length: past_data.length}, (val, ind) => { return ind; });
 		
 		// Print the [first datapoint of] 24 hour predictions from the site
-		var predicted_24hour_temperature_data = array_object[1].temperature_2m;
-		predicted_24hour_temperature_data = predicted_24hour_temperature_data.flat();
-		console.log("predicted_24hour_temperature_data: ", JSON.stringify(predicted_24hour_temperature_data));
+		var predicted_24hour_data = array_object[1].temperature_2m;
+		predicted_24hour_data = predicted_24hour_data.flat();
+		console.log("predicted_24hour_data: ", JSON.stringify(predicted_24hour_data));
 		
-		var t2 = await Array.from({length: predicted_24hour_temperature_data.length}, (val, ind) => { return (past_temperature_data.length-1) + ind; });
+		var t2 = await Array.from({length: predicted_24hour_data.length}, (val, ind) => { return (past_data.length-1) + ind; });
 
 		// https://plotly.com/javascript/line-charts/
-		var title_text = "Timeseries: temperature per hour";
+		var title_text = "UV: per hour";
 		var x_text_trace1and2 = "Time (hour)";
-		var y_text_trace1and2 = "Temperature (Celsius)";
-		var trace1 = {x: t1, y: past_temperature_data, mode: 'lines+markers', type: 'line', name: 'Past temperature points'};
-		var trace2 = {x: t2, y: predicted_24hour_temperature_data, mode: 'lines+markers', type: 'line', name: 'Predicted temperature points'};
+		var y_text_trace1and2 = "UV (Celsius)";
+		var trace1 = {x: t1, y: past_data, mode: 'lines+markers', type: 'line', name: 'Past data points'};
+		var trace2 = {x: t2, y: predicted_24hour_data, mode: 'lines+markers', type: 'line', name: 'Predicted data points'};
 		var data = [trace1, trace2];
 		var layout = {grid: {rows: 1, columns: 1, pattern: 'independent'}, title: title_text, xaxis: {title: x_text_trace1and2}, yaxis: {title: y_text_trace1and2}};
 		Plotly.newPlot('data_display', data, layout);
@@ -1072,7 +1072,7 @@ async function GET_energy_data_timeseries_data(latitude, longitude) {
 	
 	// Obtain weather [temperature] data from the past (Prediction)
 	// Return temperature every hour for the [previous 2 days OR more], such that the next day can be predicted
-	url = `https://api.open-meteo.com/v1/air-quality?latitude=${latitude}&longitude=${longitude}&hourly=uv_index&past_days=10&forecast_days=0`;
+	url = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${latitude}&longitude=${longitude}&hourly=uv_index&past_days=10&forecast_days=0`;
 	var open_meteo_past_data = await fetch_CORS(url, method, data, headers, return_type);
 	console.log('open_meteo_past_data: ', open_meteo_past_data);
 
@@ -1080,7 +1080,7 @@ async function GET_energy_data_timeseries_data(latitude, longitude) {
 	
 	// Obtain weather [temperature] predictions by open-meteo (Actual)
 	// Return temperature every hour for the next day
-	url = `https://api.open-meteo.com/v1/air-quality?latitude=${latitude}&longitude=${longitude}&hourly=uv_index&past_days=0&forecast_days=1`;
+	url = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${latitude}&longitude=${longitude}&hourly=uv_index&past_days=0&forecast_days=1`;
 	var open_meteo_predictions = await fetch_CORS(url, method, data, headers, return_type);
 	console.log('open_meteo_predictions: ', open_meteo_predictions);
 
