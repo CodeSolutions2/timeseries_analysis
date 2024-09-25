@@ -10,5 +10,5 @@ The current example test case uses weather data (temperature) and energy data (u
 
 ## In progress
 - Add a final custom model 
-- Smarter data stacking to forecast 24 data points for both LSTM and Regression
-- Try to improve processing time for Regression model
+- Smarter data stacking to forecast 24 data points for both LSTM and Regression, instead of one data point forecasting
+- Try to improve processing time
