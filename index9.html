@@ -187,17 +187,17 @@ async function view_fetched_data() {
 		// console.log('latitude: ', latitude);
 		// console.log('longitude: ', Lat_lon_arr);
 		
-		array_object = await GET_weather_timeseries_data(latitude, Lat_lon_arr);
+		array_object = await GET_energy_data_timeseries_data(latitude, Lat_lon_arr);
 		console.log('array_object: ', array_object);
 
 		// -----------------------------------------------
 		// Plot data
 		// -----------------------------------------------
-		var past_temperature_data = array_object[0].temperature_2m;
-		past_temperature_data = past_temperature_data.flat();
-		console.log("past_temperature_data: ", JSON.stringify(past_temperature_data));
+		var past_data = array_object[0].temperature_2m;
+		past_data = past_data.flat();
+		console.log("past_data: ", JSON.stringify(past_data));
 		
-		var t1 = await Array.from({length: past_temperature_data.length}, (val, ind) => { return ind; });
+		var t1 = await Array.from({length: past_data.length}, (val, ind) => { return ind; });
 		
 		// Print the [first datapoint of] 24 hour predictions from the site
 		var predicted_24hour_temperature_data = array_object[1].temperature_2m;
@@ -1060,7 +1060,7 @@ async function GET_weather_timeseries_data(latitude, longitude) {
 async function GET_energy_data_timeseries_data(latitude, longitude) {
 
 	// [Step 0] Get weather data
-	// https://open-meteo.com/en/docs
+	// https://open-meteo.com/en/docs/air-quality-api
 	// The API endpoint /v1/forecast accepts a geographical coordinate, a list of weather variables and responds with a JSON hourly weather forecast for 7 days. Time always starts at 0:00 today and contains 168 hours. If &forecast_days=16 is set, up to 16 days of forecast can be returned.
 
 	var method = 'GET';  // method: 'GET', 'POST'
@@ -1072,7 +1072,7 @@ async function GET_energy_data_timeseries_data(latitude, longitude) {
 	
 	// Obtain weather [temperature] data from the past (Prediction)
 	// Return temperature every hour for the [previous 2 days OR more], such that the next day can be predicted
-	url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m&past_days=10&forecast_days=0`;
+	url = `https://api.open-meteo.com/v1/air-quality?latitude=${latitude}&longitude=${longitude}&hourly=uv_index&past_days=10&forecast_days=0`;
 	var open_meteo_past_data = await fetch_CORS(url, method, data, headers, return_type);
 	console.log('open_meteo_past_data: ', open_meteo_past_data);
 
@@ -1080,7 +1080,7 @@ async function GET_energy_data_timeseries_data(latitude, longitude) {
 	
 	// Obtain weather [temperature] predictions by open-meteo (Actual)
 	// Return temperature every hour for the next day
-	url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m&past_days=0&forecast_days=1`;
+	url = `https://api.open-meteo.com/v1/air-quality?latitude=${latitude}&longitude=${longitude}&hourly=uv_index&past_days=0&forecast_days=1`;
 	var open_meteo_predictions = await fetch_CORS(url, method, data, headers, return_type);
 	console.log('open_meteo_predictions: ', open_meteo_predictions);
 
