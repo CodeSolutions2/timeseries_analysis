@@ -197,23 +197,23 @@ async function view_fetched_data() {
 		// -----------------------------------------------
 		// Plot data
 		// -----------------------------------------------
-		past_data = array_object[0].uv_index;
+		past_data = array_object[0].cape;
 		past_data = past_data.flat();
 		console.log("past_data: ", JSON.stringify(past_data));
 		
 		var t1 = await Array.from({length: past_data.length}, (val, ind) => { return ind; });
 		
 		// Print the [first datapoint of] 24 hour predictions from the site
-		predicted_24hour_data = array_object[1].uv_index;
+		predicted_24hour_data = array_object[1].cape;
 		predicted_24hour_data = predicted_24hour_data.flat();
 		console.log("predicted_24hour_data: ", JSON.stringify(predicted_24hour_data));
 		
 		var t2 = await Array.from({length: predicted_24hour_data.length}, (val, ind) => { return (past_data.length-1) + ind; });
 
 		// https://plotly.com/javascript/line-charts/
-		var title_text = "UV: per hour";
+		var title_text = "CAPE: per hour";
 		var x_text_trace1and2 = "Time (hour)";
-		var y_text_trace1and2 = "UV";
+		var y_text_trace1and2 = "CAPE (Convective Available Potential Energy)";
 		var trace1 = {x: t1, y: past_data, mode: 'lines+markers', type: 'line', name: 'Past data points'};
 		var trace2 = {x: t2, y: predicted_24hour_data, mode: 'lines+markers', type: 'line', name: 'Predicted data points'};
 		var data = [trace1, trace2];
